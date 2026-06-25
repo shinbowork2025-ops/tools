@@ -49,3 +49,25 @@ function renderJanBarcode(details){
   box.innerHTML=ean13BarcodeSvg(details.dataset.jan||'');
   box.dataset.rendered='1';
 }
+
+/**
+ * 3つの検索ツールに一覧へ戻るリンクを共通追加する。
+ * 個別HTMLに同じ記述を重複させず、既にリンクがある場合は何もしない。
+ */
+function ensureToolListLink(){
+  if(document.querySelector('a[href="../../index.html"]'))return;
+  const heading=document.querySelector('h1');
+  if(!heading)return;
+  const link=document.createElement('a');
+  link.href='../../index.html';
+  link.textContent='← ツール一覧へ戻る';
+  link.setAttribute('aria-label','ツール一覧へ戻る');
+  Object.assign(link.style,{
+    display:'inline-flex',alignItems:'center',minHeight:'36px',marginBottom:'8px',
+    padding:'6px 10px',border:'1px solid #c8d3df',borderRadius:'8px',background:'#fff',
+    color:'#194f88',textDecoration:'none',fontSize:'.78rem',fontWeight:'700'
+  });
+  heading.before(link);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureToolListLink,{once:true});
+else ensureToolListLink();
