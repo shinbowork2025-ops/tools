@@ -8,7 +8,7 @@
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "orientation": "any",
+  "orientation": "portrait-primary",
   "background_color": "#f3f5f7",
   "theme_color": "#1f5f95",
   "categories": ["productivity", "utilities"],
