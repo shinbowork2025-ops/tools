@@ -28,14 +28,18 @@
   .manual{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px}
   input{width:100%;padding:10px 12px;font-size:1.05rem}
   .camera{
-    display:none;margin-top:10px;background:#111;border-radius:12px;overflow:hidden;
-    position:relative
+    display:none;margin-top:10px;background:#111;border-radius:12px;overflow:hidden
   }
+  .camera-preview{position:relative;overflow:hidden}
   video{width:100%;display:block;max-height:52vh;object-fit:cover}
   .guide{
-    position:absolute;left:7%;right:7%;top:38%;height:24%;
-    border:3px solid rgba(255,255,255,.9);border-radius:10px;
-    box-shadow:0 0 0 9999px rgba(0,0,0,.25);pointer-events:none
+    position:absolute;left:5%;right:5%;top:32%;height:36%;
+    border:3px solid rgba(255,255,255,.95);border-radius:10px;
+    box-shadow:0 0 0 9999px rgba(0,0,0,.3);pointer-events:none
+  }
+  .scan-feedback{
+    min-height:38px;padding:8px 10px;background:#17202a;color:#fff;
+    font-size:.82rem;line-height:1.4;text-align:center
   }
   .camera-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;background:#111}
   .camera-actions button{min-height:44px}
@@ -71,3 +75,13 @@
     .item-actions{flex-direction:row}
     .item-actions button{flex:1}
   }
+
+/* 各ツールから一覧画面へ戻るための共通風リンク */
+.tool-nav { display:flex; align-items:center; margin:0 0 8px; }
+.tool-nav a {
+  display:inline-flex; align-items:center; justify-content:center; min-height:36px;
+  padding:6px 10px; border:1px solid #c8d3df; border-radius:8px;
+  background:#fff; color:#194f88; text-decoration:none; font-size:.78rem; font-weight:700;
+}
+.tool-nav a:active { transform:translateY(1px); }
+.tool-nav a:focus-visible { outline:3px solid rgba(37,99,168,.25); outline-offset:2px; }

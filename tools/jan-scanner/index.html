@@ -16,6 +16,7 @@
 <body>
 <div class="app">
   <header>
+    <nav class="tool-nav" aria-label="ページ移動"><a href="../../index.html">← ツール一覧へ戻る</a></nav>
     <h1>JANスキャンメモ</h1>
     <div id="status" class="status">スキャンしたJANはこの端末内に保存されます。</div>
 
@@ -31,8 +32,12 @@
     </div>
 
     <div id="cameraBox" class="camera">
-      <video id="video" playsinline muted></video>
-      <div class="guide"></div>
+      <div class="camera-preview">
+        <video id="video" playsinline muted></video>
+        <div class="guide" aria-hidden="true"></div>
+      </div>
+      <div id="scanFeedback" class="scan-feedback" aria-live="polite">バーコードを横向きにして枠内へ入れてください。</div>
+      <canvas id="scanCanvas" hidden></canvas>
       <div class="camera-actions">
         <button id="torchBtn" disabled>ライト</button>
         <button id="closeCameraBtn">閉じる</button>
@@ -50,6 +55,7 @@
 <div id="toast" class="toast"></div>
 
 <script src="js/barcode-renderer.js" defer></script>
+<script src="js/scan-consensus.js" defer></script>
 <script src="js/app.js" defer></script>
 <script src="../../shared/js/pwa-client.js" defer></script>
 </body>
