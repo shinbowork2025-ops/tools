@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JANスキャンメモ</title>
+<meta name="theme-color" content="#1f5f95">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>JANスキャンメモ</h1>
+    <div id="status" class="status">スキャンしたJANはこの端末内に保存されます。</div>
+
+    <div class="controls">
+      <button id="scanBtn" class="primary">カメラでスキャン</button>
+      <button id="copyAllBtn">一覧をコピー</button>
+    </div>
+
+    <div class="manual">
+      <input id="manualInput" inputmode="numeric" autocomplete="off"
+             placeholder="JANを手入力（8桁または13桁）">
+      <button id="addBtn">追加</button>
+    </div>
+
+    <div id="cameraBox" class="camera">
+      <video id="video" playsinline muted></video>
+      <div class="guide"></div>
+      <div class="camera-actions">
+        <button id="torchBtn" disabled>ライト</button>
+        <button id="closeCameraBtn">閉じる</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="summary">
+    <h2>保存リスト <span id="count">0</span>件</h2>
+    <button id="clearBtn" class="danger">すべて削除</button>
+  </div>
+
+  <div id="list" class="list"></div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="js/barcode-renderer.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

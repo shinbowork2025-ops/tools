@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>チェーンソー替刃・ガイドバー検索</title>
+<meta name="theme-color" content="#1f5f95">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<button type="button" class="reset-all" id="resetAll" hidden>すべて解除</button>
+<h1>チェーンソー替刃・ガイドバー検索</h1>
+<div class="sub">メーカーと本体型式から、仕様・OREGON品番・コメリ商品情報・JANコード・バーコードを検索（491仕様／270型式表記／2026年6月25日確認）</div>
+
+<section class="step" aria-labelledby="makerLabel">
+  <div class="step-label" id="makerLabel"><span class="step-num">1</span>本体メーカーを選ぶ<span class="count" id="makerCount"></span><button type="button" class="clear" id="makerClear" hidden>× 解除</button></div>
+  <input type="text" id="makerSearch" placeholder="メーカー名で検索" autocomplete="off" aria-label="メーカー名で検索">
+  <div class="chips" id="makerChips"></div>
+</section>
+
+<section class="step" id="modelStep" aria-labelledby="modelLabel" hidden>
+  <div class="step-label" id="modelLabel"><span class="step-num">2</span>本体型式を選ぶ<span class="count" id="modelCount"></span><button type="button" class="clear" id="modelClear" hidden>× 解除</button></div>
+  <input type="text" id="modelSearch" placeholder="型式を入力（例：CS252T、MUC353D、MS 261）" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="本体型式で検索">
+  <div class="filter-row">
+    <div class="filter-field"><label for="powerFilter">動力区分</label><select id="powerFilter"><option value="">すべて</option></select></div>
+    <div class="filter-field"><label for="availabilityFilter">適合品の掲載状態</label><select id="availabilityFilter"><option value="">すべて</option><option value="chain">チェーン品番あり</option><option value="bar">ガイドバー品番あり</option><option value="both">両方あり</option></select></div>
+  </div>
+  <div class="chips" id="modelChips"></div>
+</section>
+
+<section class="step" id="specStep" aria-labelledby="specLabel" hidden>
+  <div class="step-label" id="specLabel"><span class="step-num">3</span>バー・チェーン仕様を選ぶ<span class="count" id="specCount"></span><button type="button" class="clear" id="specClear" hidden>× 解除</button></div>
+  <div class="chips" id="specChips"></div>
+</section>
+
+<div class="summary" id="summary" aria-live="polite"></div>
+<div class="notice">同じ本体型式でも、バー長・出荷仕様・交換歴によって適合品が異なる場合があります。購入前に現物のバー長、ピッチ、ゲージ、ドライブリンク数（コマ数）を確認してください。コメリ直販ページを確認できない品番は、品番を入力済みのコメリ内検索を表示します。</div>
+<div class="results" id="results" aria-live="polite"></div>
+
+<script src="../../shared/js/ean13.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

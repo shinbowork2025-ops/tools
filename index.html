@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>業務補助ツール</title>
+  <meta name="theme-color" content="#1f5f95">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">個人制作</p>
+      <h1>業務補助ツール</h1>
+      <p>スマートフォンやハンディ端末から使える、検索・計算・JAN管理ツールです。</p>
+    </header>
+
+    <section class="notice" aria-label="利用上の注意">
+      <strong>利用上の注意</strong>
+      <p>所属企業および各メーカーの公式サービスではありません。商品・農薬・適合情報は、利用前に製品表示や公式資料で確認してください。</p>
+    </section>
+
+    <section class="pwa-panel" aria-labelledby="pwaPanelTitle">
+      <div>
+        <p class="eyebrow">端末への追加・オフライン利用</p>
+        <h2 id="pwaPanelTitle">アプリとして使用</h2>
+        <p class="pwa-description">ホーム画面から独立して起動できます。基本機能は自動保存され、農薬データ約29 MBは必要な端末だけに保存できます。</p>
+      </div>
+      <div class="pwa-actions">
+        <button type="button" id="pwaInstallButton" hidden>端末にインストール</button>
+        <button type="button" id="pwaOfflineButton">オフライン用データを保存</button>
+      </div>
+      <p class="pwa-status" id="pwaStatus" aria-live="polite">PWA機能を確認しています。</p>
+      <p class="pwa-version">アプリ版 <span id="pwaVersion">確認中</span></p>
+    </section>
+
+    <section class="tool-grid" aria-label="ツール一覧">
+      <a class="tool-card" href="tools/jan-scanner/">
+        <span class="category">JAN管理</span><h2>JANスキャンメモ</h2>
+        <p>カメラでJANを読み取り、番号とバーコードを端末内に保存します。</p>
+      </a>
+      <a class="tool-card" href="tools/pesticide-search/">
+        <span class="category">園芸</span><h2>農薬適用検索</h2>
+        <p>作物・病害虫・農薬名から登録内容と商品情報を検索します。</p>
+      </a>
+      <a class="tool-card" href="tools/chainsaw-parts-search/">
+        <span class="category">林業・工具</span><h2>チェーンソー部品検索</h2>
+        <p>機種と仕様から替刃、ガイドバー、互換機種を確認します。</p>
+      </a>
+      <a class="tool-card" href="tools/power-tool-blade-search/">
+        <span class="category">電動工具</span><h2>替刃・互換検索</h2>
+        <p>メーカーと型番から対応する替刃と仕様を確認します。</p>
+      </a>
+      <a class="tool-card" href="tools/hose-length/">
+        <span class="category">計算</span><h2>ホース長さ計算</h2>
+        <p>リール全体・ドラム・1m当たりの重量から長さを推定します。</p>
+      </a>
+    </section>
+  </main>
+  <script src="shared/js/pwa-client.js" defer></script>
+</body>
+</html>

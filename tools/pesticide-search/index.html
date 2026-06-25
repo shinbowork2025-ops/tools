@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>農薬適用検索</title>
+<meta name="theme-color" content="#1f5f95">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<label class="garden-toggle-wrap" for="showAllPesticides" title="オンにすると園芸グループ以外の登録農薬も表示">
+  <input type="checkbox" id="showAllPesticides">
+  <span class="toggle-track" aria-hidden="true"></span>
+  <span class="garden-toggle-label">すべての農薬を表示</span>
+</label>
+<h1>農薬適用検索</h1>
+<div class="sub">農林水産省 農薬登録情報（2026年6月10日登録分まで）＋コメリ商品情報・JANコード・バーコード（2026年6月25日確認）</div>
+
+<div class="step">
+  <div class="step-label">農薬名から直接検索<span class="count" id="directProductCount"></span>
+    <span class="clear" id="directProductClear" style="display:none">× 解除</span>
+  </div>
+  <input type="text" id="directProductSearch" placeholder="農薬名で検索（例：ベニカ、オルトラン）" autocomplete="off" enterkeyhint="search" aria-controls="directProductChips" aria-autocomplete="list">
+  <div class="direct-search-status" id="directProductStatus" aria-live="polite"></div>
+  <div class="chips direct-product-chips" id="directProductChips" role="listbox" aria-label="農薬名の候補"></div>
+</div>
+
+<div class="search-or">または作物・病害虫から検索</div>
+
+<div class="step">
+  <div class="step-label"><span class="step-num">1</span>作物を選ぶ<span class="count" id="cropCount"></span>
+    <span class="clear" id="cropClear" style="display:none">× 解除</span>
+  </div>
+  <input type="text" id="cropSearch" placeholder="作物名で検索（例：きゅうり、ばら）" autocomplete="off">
+  <div class="chips" id="cropChips"></div>
+</div>
+
+<div class="step" id="pestStep" style="display:none">
+  <div class="step-label"><span class="step-num">2</span>病害虫・雑草名を選ぶ<span class="count" id="pestCount"></span>
+    <span class="clear" id="pestClear" style="display:none">× 解除</span>
+  </div>
+  <input type="text" id="pestSearch" placeholder="病害虫・雑草名で検索（例：アブラムシ、うどんこ病）" autocomplete="off">
+  <div class="chips" id="pestChips"></div>
+  <input type="text" id="productSearch" placeholder="農薬名でさらに絞り込み（任意）" autocomplete="off" style="margin-top:10px">
+</div>
+
+<div class="summary" id="summary"></div>
+<div class="notice">初期状態では園芸グループ掲載品だけを表示します。使用前に、製品ラベルと最新の登録内容を必ず確認してください。容量別商品を確認できたものはすべて併記し、直接の商品ページを特定できない登録名はコメリ内検索を表示します。</div>
+<div class="results" id="results"></div>
+
+<script src="../../shared/js/ean13.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

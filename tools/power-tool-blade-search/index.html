@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>電動工具 替刃・互換検索</title>
+<meta name="theme-color" content="#1f5f95">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<button type="button" class="reset-all" id="resetAll" hidden>すべて解除</button>
+<h1>電動工具 替刃・互換検索</h1>
+<div class="sub">メーカーと本体型番から、対応替刃・コメリ商品ページ・JANコード・バーコードを検索（114機種／2026年6月25日確認）</div>
+
+<section class="step" aria-labelledby="makerLabel">
+  <div class="step-label" id="makerLabel">
+    <span class="step-num">1</span>メーカーを選ぶ
+    <span class="count" id="makerCount"></span>
+    <button type="button" class="clear" id="makerClear" hidden>× 解除</button>
+  </div>
+  <input type="text" id="makerSearch" placeholder="メーカー名で検索" autocomplete="off" aria-label="メーカー名で検索">
+  <div class="chips" id="makerChips"></div>
+</section>
+
+<section class="step" id="modelStep" aria-labelledby="modelLabel" hidden>
+  <div class="step-label" id="modelLabel">
+    <span class="step-num">2</span>本体型番を選ぶ
+    <span class="count" id="modelCount"></span>
+    <button type="button" class="clear" id="modelClear" hidden>× 解除</button>
+  </div>
+  <input type="text" id="modelSearch" placeholder="型番を入力（例：MUH2300、HT-3630）" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="本体型番で検索">
+  <div class="filter-row">
+    <div class="filter-field">
+      <label for="categoryFilter">製品カテゴリ</label>
+      <select id="categoryFilter"><option value="">すべて</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="powerFilter">電源種別</label>
+      <select id="powerFilter"><option value="">すべて</option></select>
+    </div>
+  </div>
+  <div class="chips" id="modelChips"></div>
+</section>
+
+<div class="summary" id="summary" aria-live="polite"></div>
+<div class="notice">互換性、商品ページ、JANコード、取扱状況は変更される場合があります。購入前に本体型番、替刃型番、商品ページの記載を確認してください。商品を一意に特定できない場合はコメリ内検索を表示します。</div>
+<div class="results" id="results" aria-live="polite"></div>
+
+<script src="../../shared/js/ean13.js" defer></script>
+<script src="js/data.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

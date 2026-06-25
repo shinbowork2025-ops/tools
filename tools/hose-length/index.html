@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ホース長さ計算</title>
+<meta name="theme-color" content="#1f5f95">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <header><h1>ホース長さ計算</h1><p class="subtitle">リールの重量から、巻かれているホースの長さを推定します。</p></header>
+  <section class="grid" aria-label="ホース長さ計算">
+    <div class="panel">
+      <label for="totalHundreds">全重量</label>
+      <div class="input-wrap"><input id="totalHundreds" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="例：85" autocomplete="off"><span class="suffix"><span class="fixed-digits">00</span>&nbsp;g</span></div>
+      <p class="hint">例：85と入力 → 8,500 g</p>
+    </div>
+    <div class="panel">
+      <label for="drumTens">ドラム重量</label>
+      <div class="input-wrap"><input id="drumTens" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="例：320" autocomplete="off"><span class="suffix"><span class="fixed-digits">0</span>&nbsp;g</span></div>
+      <p class="hint">例：320と入力 → 3,200 g</p>
+    </div>
+    <div class="panel">
+      <label for="weightPerMeter">ホース1mの重量</label>
+      <div class="input-wrap"><input id="weightPerMeter" type="number" inputmode="decimal" min="0" step="0.1" placeholder="例：210" autocomplete="off"><span class="suffix">g/m</span></div>
+      <p class="hint">仕様値または1m分の実測値</p>
+    </div>
+    <div class="panel result-panel" aria-live="polite">
+      <p class="panel-title">推定ホース長</p>
+      <p class="result-value"><span id="lengthResult">―</span><span class="result-unit">m</span></p>
+      <p class="detail" id="resultDetail">3項目を入力してください</p>
+    </div>
+  </section>
+  <footer><p class="message" id="message" role="alert"></p><button id="resetButton" type="button">リセット</button></footer>
+</main>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

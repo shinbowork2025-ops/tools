@@ -1,0 +1,85 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "UD デジタル 教科書体 N-R", "UD デジタル 教科書体", "UD Digi Kyokasho N-R", "BIZ UDPGothic", "Yu Gothic", sans-serif;
+    background: #f4f5f7; color: #1a1a1a; line-height: 1.5;
+    padding: 12px; max-width: 760px; margin: 0 auto;
+  }
+  h1 { font-size: 1.15rem; margin-bottom: 4px; }
+  .sub { font-size: 0.72rem; color: #777; margin-bottom: 14px; }
+  .step { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); scroll-margin-top:72px; }
+  .step-label { font-size: 0.78rem; font-weight: 700; color: #2563a8; margin-bottom: 8px; display:flex; align-items:center; gap:6px;}
+  .step-num { background:#2563a8; color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.7rem;}
+  input[type=text] {
+    width: 100%; padding: 10px 12px; font-size: 1rem;
+    border: 1.5px solid #ccc; border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: #2563a8; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+  .chip {
+    padding: 7px 12px; background: #eef2f7; border: 1px solid #d5dde6;
+    border-radius: 16px; font-size: 0.85rem; cursor: pointer; user-select: none;
+  }
+  .chip:active { background: #d3e0ef; }
+  .chip.selected { background: #2563a8; color: #fff; border-color: #2563a8; }
+  .clear { font-size: 0.72rem; color: #2563a8; cursor: pointer; margin-left:auto; font-weight:400;}
+  .count { font-size: 0.72rem; color: #888; margin-left: 6px; }
+  .results { margin-top: 4px; }
+  .result-card {
+    background: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #2563a8;
+  }
+  .product { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .meta { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 0.82rem; }
+  .meta dt { color: #888; }
+  .meta dd { color: #222; }
+  .crop-cond { font-size: 0.72rem; color: #c0392b; margin-top: 6px; padding-top:6px; border-top:1px dashed #eee;}
+  .empty { text-align: center; color: #999; padding: 30px 0; font-size: 0.9rem; }
+  .summary { font-size: 0.8rem; color: #555; margin: 10px 2px; scroll-margin-top:72px; }
+  .more { display:block; margin:12px auto 20px; padding:9px 18px; border:1px solid #bbb; border-radius:8px; background:#fff; cursor:pointer; }
+  .notice { font-size:.72rem; color:#8a5a00; background:#fff8df; padding:8px 10px; border-radius:7px; margin:8px 0 12px; }
+  .reset-all { background:#fff; border:1px solid #ccc; border-radius:8px; padding:8px 14px; font-size:0.85rem; cursor:pointer; color:#444;}
+  .search-or { display:flex; align-items:center; gap:9px; margin:2px 4px 12px; color:#7a828d; font-size:.72rem; }
+  .search-or::before,.search-or::after { content:""; height:1px; background:#d7dde5; flex:1; }
+  .direct-search-status { min-height:1.25em; margin:7px 2px 0; color:#68717d; font-size:.72rem; }
+  .direct-product-chips { max-height:260px; }
+  .direct-product-chips .chip { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; border-radius:9px; text-align:left; }
+  .direct-product-name { min-width:0; overflow-wrap:anywhere; }
+  .direct-product-rows { flex:none; color:#66717f; font-size:.69rem; font-weight:400; }
+  .direct-product-chips .chip.selected .direct-product-rows { color:rgba(255,255,255,.86); }
+
+  .garden-toggle-wrap { position:fixed; top:10px; right:max(10px,calc((100vw - 760px)/2 + 10px)); z-index:1000; display:flex; align-items:center; gap:7px; padding:7px 10px; background:rgba(255,255,255,.96); border:1px solid #b7c6d8; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,.14); font-size:.78rem; font-weight:700; color:#234; backdrop-filter:blur(4px); cursor:pointer; }
+  .garden-toggle-wrap input { position:absolute; opacity:0; pointer-events:none; }
+  .toggle-track { width:38px; height:22px; border-radius:11px; background:#c7cdd4; position:relative; transition:.18s; flex:none; }
+  .toggle-track::after { content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:.18s; }
+  .garden-toggle-wrap input:checked + .toggle-track { background:#2f7d32; }
+  .garden-toggle-wrap input:checked + .toggle-track::after { transform:translateX(16px); }
+  .garden-toggle-label { white-space:nowrap; }
+  .garden-badge { display:inline-block; margin-left:7px; padding:2px 7px; border-radius:999px; background:#e8f4e8; color:#256529; font-size:.68rem; vertical-align:middle; }
+  @media (max-width:520px){ body{padding-top:58px;} .garden-toggle-wrap{top:8px;right:8px;} }
+
+  .commerce-box { margin-top:9px; padding:9px 10px; border-radius:8px; border:1px solid #ccdae9; background:#f7faff; }
+  .commerce-title { font-size:.73rem; color:#194f88; font-weight:700; margin-bottom:6px; }
+  .variant-list { display:grid; gap:6px; }
+  .variant-row { padding:8px 9px; border-radius:7px; border:1px solid #dae4ef; background:#fff; }
+  .variant-name { font-size:.78rem; font-weight:700; overflow-wrap:anywhere; }
+  .variant-note { margin-top:2px; font-size:.68rem; color:#6a5a2c; }
+  .jan-code { margin-top:2px; font-size:.71rem; color:#4e5965; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+  .product-link { display:inline-flex; align-items:center; justify-content:center; min-height:32px; margin-top:6px; padding:5px 9px; border-radius:7px; border:1px solid #b9cbe0; background:#2563a8; color:#fff; text-decoration:none; font-size:.71rem; font-weight:700; }
+  .product-link.search { background:#fff; color:#194f88; }
+  .unverified { margin-top:5px; color:#7b5b09; font-size:.67rem; }
+
+  .equivalent-box { margin-top:9px; padding:8px 9px; border-radius:8px; border:1px solid #d9dfc5; background:#fbfdf5; }
+  .equivalent-box summary { cursor:pointer; color:#4d611c; font-size:.73rem; font-weight:700; }
+  .equivalent-note { margin-top:4px; color:#6d735e; font-size:.65rem; line-height:1.45; }
+  .equivalent-links { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+  .equivalent-link { border:1px solid #bdc99d; background:#fff; color:#3f5710; border-radius:999px; padding:5px 8px; font:inherit; font-size:.69rem; cursor:pointer; line-height:1.25; }
+  .equivalent-link:active { background:#eef4df; }
+  .equivalent-link:focus-visible { outline:3px solid rgba(77,97,28,.22); outline-offset:2px; }
+
+  /* JAN（EAN-13）バーコード：画像を持たず、開いたときだけSVGを生成 */
+  .jan-barcode { margin-top:6px; }
+  .jan-barcode summary { width:max-content; max-width:100%; cursor:pointer; color:#315d86; font-size:.7rem; font-weight:700; user-select:none; }
+  .jan-barcode summary:hover { text-decoration:underline; }
+  .jan-barcode-box { width:min(100%,270px); margin-top:6px; padding:6px 8px 4px; border:1px solid #d8dee7; border-radius:6px; background:#fff; }
+  .jan-barcode-svg { display:block; width:100%; height:auto; color:#111; background:#fff; }
+  .jan-barcode-note { margin-top:3px; font-size:.62rem; color:#6b7280; line-height:1.35; }
