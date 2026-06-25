@@ -5,7 +5,7 @@
  * 新版のService Workerは待機状態になり、画面側で利用者が更新を選ぶまで
  * 旧版を継続する。更新後は同じ接頭辞を持つ旧キャッシュを削除する。
  */
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.4';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
@@ -51,7 +51,9 @@ const CORE_ASSETS = [
   './tools/pesticide-search/',
   './tools/pesticide-search/index.html',
   './tools/pesticide-search/styles.css',
-  './tools/pesticide-search/js/app.js'
+  './tools/pesticide-search/js/app.js',
+  './tools/pesticide-search/js/multi-crop.js',
+  './tools/pesticide-search/js/multi-crop-ui.js'
 ];
 
 const OPTIONAL_ASSETS = [
