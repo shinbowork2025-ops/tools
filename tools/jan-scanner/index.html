@@ -21,8 +21,7 @@
     <div id="status" class="status">スキャンしたJANはこの端末内に保存されます。</div>
 
     <div class="controls">
-      <button id="scanBtn" class="primary">カメラでスキャン</button>
-      <button id="copyAllBtn">一覧をコピー</button>
+      <button id="copyAllBtn">現在のリストをコピー</button>
     </div>
 
     <div class="manual">
@@ -30,31 +29,47 @@
              placeholder="JANを手入力（8桁または13桁）">
       <button id="addBtn">追加</button>
     </div>
-
-    <div id="cameraBox" class="camera">
-      <div class="camera-preview">
-        <video id="video" playsinline muted></video>
-        <div class="guide" aria-hidden="true"></div>
-      </div>
-      <div id="scanFeedback" class="scan-feedback" aria-live="polite">バーコードを横向きにして枠内へ入れてください。</div>
-      <canvas id="scanCanvas" hidden></canvas>
-      <div class="camera-actions">
-        <button id="torchBtn" disabled>ライト</button>
-        <button id="closeCameraBtn">閉じる</button>
-      </div>
-    </div>
   </header>
 
+  <section class="tabs-panel" aria-label="保存リストの切り替え">
+    <div class="tabs-heading">
+      <span>保存リスト</span>
+      <span class="tabs-help">選択中の名前を再タップすると編集</span>
+    </div>
+    <div class="tabs-row">
+      <div id="listTabs" class="list-tabs" role="tablist" aria-label="JAN保存リスト"></div>
+      <button id="addListBtn" class="add-list-button" type="button">＋</button>
+    </div>
+  </section>
+
   <div class="summary">
-    <h2>保存リスト <span id="count">0</span>件</h2>
-    <button id="clearBtn" class="danger">すべて削除</button>
+    <h2><span id="activeListHeading">リスト1</span> <span id="count">0</span>件</h2>
+    <button id="clearBtn" class="danger">このリストを空にする</button>
   </div>
 
   <div id="list" class="list"></div>
 </div>
+
+<div id="cameraBox" class="camera" role="dialog" aria-modal="true" aria-label="JANバーコード読み取り">
+  <div class="camera-preview">
+    <video id="video" playsinline muted></video>
+    <div class="guide" aria-hidden="true"></div>
+  </div>
+  <div id="scanFeedback" class="scan-feedback" aria-live="polite">バーコードを横向きにして枠内へ入れてください。</div>
+  <canvas id="scanCanvas" hidden></canvas>
+  <div class="camera-actions">
+    <button id="torchBtn" disabled>ライト</button>
+    <button id="closeCameraBtn">閉じる</button>
+  </div>
+</div>
+
+<div class="scan-dock" aria-label="スキャン操作">
+  <button id="scanBtn" class="primary scan-button">カメラでスキャン</button>
+</div>
 <div id="toast" class="toast"></div>
 
 <script src="js/barcode-renderer.js" defer></script>
+<script src="js/list-store.js" defer></script>
 <script src="js/scan-consensus.js" defer></script>
 <script src="js/app.js" defer></script>
 <script src="../../shared/js/pwa-client.js" defer></script>
