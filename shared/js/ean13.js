@@ -89,7 +89,24 @@ async function copyJanFromBarcode(element){
   copyJanFromBarcode.timer=setTimeout(()=>toast.classList.remove('show'),1600);
 }
 
+function installJanBarcodeStyles(){
+  if(document.getElementById('janBarcodeStyles'))return;
+  const style=document.createElement('style');
+  style.id='janBarcodeStyles';
+  style.textContent=`
+    .jan-code{display:none!important}
+    .jan-barcode{width:min(100%,270px);margin-top:6px}
+    .jan-barcode-box{display:flex;align-items:center;justify-content:center;width:100%;min-height:162px;padding:6px 8px 4px;border:1px solid #d8dee7;border-radius:6px;background:#fff;cursor:pointer;overflow:hidden}
+    .jan-barcode-box:focus-visible{outline:3px solid rgba(37,99,168,.28);outline-offset:2px}
+    .jan-barcode-svg{display:block;width:100%;height:auto;color:#111;background:#fff}
+    .jan-copy-toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));z-index:10020;transform:translateX(-50%);padding:9px 14px;border-radius:999px;background:#17202a;color:#fff;font-size:.78rem;opacity:0;pointer-events:none;transition:.18s;white-space:nowrap}
+    .jan-copy-toast.show{opacity:1}
+  `;
+  document.head.appendChild(style);
+}
+
 function setupJanBarcodeLazyRendering(){
+  installJanBarcodeStyles();
   if('IntersectionObserver'in window){
     janBarcodeObserver=new IntersectionObserver(entries=>{
       for(const entry of entries){
