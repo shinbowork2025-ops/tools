@@ -5,7 +5,7 @@
  * 新版のService Workerは待機状態になり、画面側で利用者が更新を選ぶまで
  * 旧版を継続する。更新後は同じ接頭辞を持つ旧キャッシュを削除する。
  */
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.2';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
@@ -32,6 +32,7 @@ const CORE_ASSETS = [
   './tools/jan-scanner/index.html',
   './tools/jan-scanner/styles.css',
   './tools/jan-scanner/js/app.js',
+  './tools/jan-scanner/js/scan-consensus.js',
   './tools/jan-scanner/js/barcode-renderer.js',
   './tools/hose-length/',
   './tools/hose-length/index.html',
