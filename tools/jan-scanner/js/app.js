@@ -1,12 +1,13 @@
 /**
  * JANスキャンメモの画面制御。
- * 保存、入力検証、一覧描画、カメラ制御をこのファイルで管理する。
+ * 複数リスト、メモ保存、入力検証、一覧描画、カメラ制御を管理する。
  */
 (() => {
   'use strict';
 
-  // DOM参照と状態
-  const STORAGE_KEY = 'jan-scan-memo-v1';
+  const STORAGE_KEY = 'jan-scan-memo-v2';
+  const LEGACY_STORAGE_KEY = 'jan-scan-memo-v1';
+
   const scanBtn = document.getElementById('scanBtn');
   const copyAllBtn = document.getElementById('copyAllBtn');
   const manualInput = document.getElementById('manualInput');
@@ -16,6 +17,9 @@
   const closeCameraBtn = document.getElementById('closeCameraBtn');
   const torchBtn = document.getElementById('torchBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const addListBtn = document.getElementById('addListBtn');
+  const listTabsEl = document.getElementById('listTabs');
+  const activeListHeading = document.getElementById('activeListHeading');
   const listEl = document.getElementById('list');
   const countEl = document.getElementById('count');
   const statusEl = document.getElementById('status');
@@ -24,15 +28,12 @@
   const scanCanvas = document.getElementById('scanCanvas');
   const scanContext = scanCanvas.getContext('2d', { alpha: false });
 
-  // 誤検出を減らすため、読取回数・枠内の形状・登録後の待機を制御する。
   const SCAN_CONFIG = Object.freeze({
     intervalMs: 180,
     requiredHits: 5,
     maxGapMs: 700,
     minDurationMs: 600,
     confirmationWindowMs: 1800,
-    cooldownMs: 2200,
-    clearToRearmMs: 450,
     cropX: 0.05,
     cropY: 0.32,
     cropWidth: 0.90,
@@ -43,14 +44,11 @@
     minAspectRatio: 1.5
   });
 
-  let items = loadItems();
+  let state = loadState();
   let stream = null;
   let detector = null;
   let scanning = false;
   let scanTimer = null;
-  let cooldownUntil = 0;
-  let waitingForClear = false;
-  let clearStartedAt = 0;
   const consensus = new JanScanConsensus({
     requiredHits: SCAN_CONFIG.requiredHits,
     maxGapMs: SCAN_CONFIG.maxGapMs,
@@ -58,35 +56,53 @@
     windowMs: SCAN_CONFIG.confirmationWindowMs
   });
 
-  // 端末内の保存と復元
-  function loadItems() {
+  function makeItemId() {
+    if (globalThis.crypto?.randomUUID) return `item-${globalThis.crypto.randomUUID()}`;
+    return `item-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function loadState() {
+    let saved = null;
+    let legacyItems = [];
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
+      saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    } catch {}
+    if (!saved) {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || '[]');
+        legacyItems = Array.isArray(parsed) ? parsed : [];
+      } catch {}
+    }
+    return JanListStore.normalizeState(saved, legacyItems);
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return true;
     } catch {
-      return [];
+      statusEl.textContent = '端末内へ保存できません。この画面を閉じると変更は消去されます。';
+      return false;
     }
   }
 
-  function saveItems() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      return true;
-    } catch {
-      // 保存領域が無効でも、現在の画面では一覧を継続して使用できるようにする。
-      statusEl.textContent = '端末内へ保存できません。この画面を閉じると一覧は消去されます。';
-      return false;
-    }
+  function scheduleSave() {
+    clearTimeout(scheduleSave.timer);
+    scheduleSave.timer = setTimeout(saveState, 250);
+  }
+
+  function activeList() {
+    return JanListStore.getActiveList(state);
   }
 
   function showToast(message) {
     toastEl.textContent = message;
     toastEl.classList.add('show');
     clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => toastEl.classList.remove('show'), 1400);
+    showToast.timer = setTimeout(() => toastEl.classList.remove('show'), 1500);
   }
 
-  // JANの正規化とチェックデジット検証
   function normalizeJan(value) {
     return String(value || '').replace(/\D/g, '');
   }
@@ -99,12 +115,11 @@
     if (!isValidJanLength(jan)) return false;
     const digits = jan.split('').map(Number);
     const check = digits.pop();
-
     let sum = 0;
     if (jan.length === 13) {
-      digits.forEach((d, i) => sum += d * (i % 2 === 0 ? 1 : 3));
+      digits.forEach((digit, index) => sum += digit * (index % 2 === 0 ? 1 : 3));
     } else {
-      digits.forEach((d, i) => sum += d * (i % 2 === 0 ? 3 : 1));
+      digits.forEach((digit, index) => sum += digit * (index % 2 === 0 ? 3 : 1));
     }
     return (10 - (sum % 10)) % 10 === check;
   }
@@ -117,108 +132,211 @@
       return { ok: false, reason: 'length', jan };
     }
     if (!validateCheckDigit(jan)) {
-      // カメラの誤検出は確認画面を出さずに破棄する。手入力だけは利用者が継続を選べる。
       if (source === 'camera') return { ok: false, reason: 'check-digit', jan };
-      const ok = confirm('チェックデジットが一致しません。それでも追加しますか？');
-      if (!ok) return { ok: false, reason: 'check-digit', jan };
+      const accepted = confirm('チェックデジットが一致しません。それでも追加しますか？');
+      if (!accepted) return { ok: false, reason: 'check-digit', jan };
     }
-    if (items.some(x => x.jan === jan)) {
-      showToast('すでに登録されています');
+
+    const list = activeList();
+    if (list.items.some(item => item.jan === jan)) {
+      showToast(`${list.name}に登録済みです`);
       return { ok: false, reason: 'duplicate', jan };
     }
 
-    items.unshift({ jan, addedAt: new Date().toISOString() });
-    saveItems();
+    list.items.unshift({
+      id: makeItemId(),
+      jan,
+      addedAt: new Date().toISOString(),
+      memo: ''
+    });
+    saveState();
     render();
-    showToast('追加しました');
+    showToast(`${list.name}へ追加しました`);
     if (navigator.vibrate) navigator.vibrate([100, 40, 100]);
     return { ok: true, reason: 'added', jan };
   }
 
-  function deleteItem(index) {
-    items.splice(index, 1);
-    saveItems();
+  function deleteItem(itemId) {
+    const list = activeList();
+    const index = list.items.findIndex(item => item.id === itemId);
+    if (index < 0) return;
+    list.items.splice(index, 1);
+    saveState();
     render();
   }
 
   function formatDate(iso) {
-    const d = new Date(iso);
+    const date = new Date(iso);
     return new Intl.DateTimeFormat('ja-JP', {
-      month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
-    }).format(d);
+      month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    }).format(date);
   }
 
   async function copyText(text) {
     try {
       await navigator.clipboard.writeText(text);
-      showToast('コピーしました');
     } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
       document.execCommand('copy');
-      ta.remove();
-      showToast('コピーしました');
+      textarea.remove();
     }
+    showToast('コピーしました');
   }
 
-  // 保存リストの描画
+  function renameActiveList(list) {
+    const nextName = prompt('リスト名を入力してください（24文字まで）', list.name);
+    if (nextName === null) return;
+    if (!JanListStore.renameList(state, list.id, nextName)) {
+      showToast('リスト名を入力してください');
+      return;
+    }
+    saveState();
+    render();
+  }
+
+  function switchList(listId) {
+    if (state.activeListId === listId) {
+      const list = state.lists.find(item => item.id === listId);
+      if (list) renameActiveList(list);
+      return;
+    }
+    state.activeListId = listId;
+    saveState();
+    render();
+  }
+
+  function deleteList(list) {
+    if (state.lists.length <= 1) {
+      showToast('リストは1つ以上必要です');
+      return;
+    }
+    const description = list.items.length ? `「${list.name}」と登録${list.items.length}件を削除しますか？` : `「${list.name}」を削除しますか？`;
+    if (!confirm(description)) return;
+    JanListStore.deleteList(state, list.id);
+    saveState();
+    render();
+    showToast('リストを削除しました');
+  }
+
+  function renderTabs() {
+    listTabsEl.innerHTML = '';
+    for (const list of state.lists) {
+      const shell = document.createElement('div');
+      shell.className = `list-tab${list.id === state.activeListId ? ' active' : ''}`;
+      shell.setAttribute('role', 'presentation');
+
+      const nameButton = document.createElement('button');
+      nameButton.type = 'button';
+      nameButton.className = 'tab-name';
+      nameButton.textContent = list.name;
+      nameButton.setAttribute('role', 'tab');
+      nameButton.setAttribute('aria-selected', list.id === state.activeListId ? 'true' : 'false');
+      nameButton.title = list.id === state.activeListId ? 'もう一度タップして名前を編集' : `${list.name}へ切り替え`;
+      nameButton.addEventListener('click', () => switchList(list.id));
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'tab-delete';
+      deleteButton.textContent = '×';
+      deleteButton.setAttribute('aria-label', `${list.name}を削除`);
+      deleteButton.disabled = state.lists.length <= 1;
+      deleteButton.addEventListener('click', event => {
+        event.stopPropagation();
+        deleteList(list);
+      });
+
+      shell.append(nameButton, deleteButton);
+      listTabsEl.appendChild(shell);
+      if (list.id === state.activeListId) {
+        requestAnimationFrame(() => shell.scrollIntoView({ inline: 'center', block: 'nearest' }));
+      }
+    }
+    addListBtn.disabled = state.lists.length >= JanListStore.MAX_LISTS;
+    addListBtn.title = addListBtn.disabled ? 'リストは最大6個です' : '新しいリストを追加';
+  }
+
   function render() {
-    countEl.textContent = items.length;
-    copyAllBtn.disabled = items.length === 0;
-    clearBtn.disabled = items.length === 0;
+    const list = activeList();
+    renderTabs();
+    activeListHeading.textContent = list.name;
+    countEl.textContent = list.items.length;
+    copyAllBtn.disabled = list.items.length === 0;
+    clearBtn.disabled = list.items.length === 0;
     listEl.innerHTML = '';
 
-    if (!items.length) {
-      listEl.innerHTML = '<div class="empty">まだ登録されていません。<br>カメラまたは手入力で追加してください。</div>';
+    if (!list.items.length) {
+      listEl.innerHTML = '<div class="empty">このリストにはまだ登録されていません。<br>画面下部のスキャンボタンまたは手入力で追加してください。</div>';
       return;
     }
 
-    items.forEach((item, index) => {
-      const card = document.createElement('div');
+    list.items.forEach(item => {
+      const card = document.createElement('article');
       card.className = 'item';
+      card.dataset.itemId = item.id;
 
-      const main = document.createElement('div');
+      const top = document.createElement('div');
+      top.className = 'item-top';
+
+      const titleBox = document.createElement('div');
       const jan = document.createElement('div');
       jan.className = 'jan';
       jan.textContent = item.jan;
-
       const meta = document.createElement('div');
       meta.className = 'meta';
       meta.textContent = `登録: ${formatDate(item.addedAt)}`;
+      titleBox.append(jan, meta);
 
+      const actions = document.createElement('div');
+      actions.className = 'item-actions';
+      const copyButton = document.createElement('button');
+      copyButton.type = 'button';
+      copyButton.textContent = 'コピー';
+      copyButton.addEventListener('click', () => copyText(item.jan));
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.textContent = '削除';
+      deleteButton.className = 'danger';
+      deleteButton.addEventListener('click', () => deleteItem(item.id));
+      actions.append(copyButton, deleteButton);
+      top.append(titleBox, actions);
+
+      const content = document.createElement('div');
+      content.className = 'barcode-note-row';
       const barcodeWrap = document.createElement('div');
       barcodeWrap.className = 'barcode-wrap';
       const canvas = document.createElement('canvas');
       canvas.setAttribute('aria-label', `${item.jan} のバーコード`);
       barcodeWrap.appendChild(canvas);
 
-      main.append(jan, meta, barcodeWrap);
+      const memoWrap = document.createElement('div');
+      memoWrap.className = 'memo-wrap';
+      const memoLabel = document.createElement('label');
+      memoLabel.textContent = 'メモ';
+      memoLabel.htmlFor = `memo-${item.id}`;
+      const memoInput = document.createElement('textarea');
+      memoInput.id = `memo-${item.id}`;
+      memoInput.className = 'memo-input';
+      memoInput.placeholder = '商品名・売場・数量など';
+      memoInput.maxLength = 500;
+      memoInput.value = item.memo || '';
+      memoInput.addEventListener('input', () => {
+        item.memo = memoInput.value;
+        scheduleSave();
+      });
+      memoWrap.append(memoLabel, memoInput);
+      content.append(barcodeWrap, memoWrap);
 
-      const actions = document.createElement('div');
-      actions.className = 'item-actions';
-
-      const copyBtn = document.createElement('button');
-      copyBtn.textContent = 'コピー';
-      copyBtn.addEventListener('click', () => copyText(item.jan));
-
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '削除';
-      delBtn.className = 'danger';
-      delBtn.addEventListener('click', () => deleteItem(index));
-
-      actions.append(copyBtn, delBtn);
-      card.append(main, actions);
+      card.append(top, content);
       listEl.appendChild(card);
-
       requestAnimationFrame(() => drawEAN(canvas, item.jan));
     });
   }
 
-  // カメラ権限、読み取り、ライト制御
   async function startCamera() {
     if (!('BarcodeDetector' in window)) {
       statusEl.textContent = 'このブラウザは直接スキャンに未対応です。Chrome最新版で開くか、手入力してください。';
@@ -228,7 +346,7 @@
 
     try {
       const supported = await BarcodeDetector.getSupportedFormats();
-      const formats = ['ean_13','ean_8'].filter(format => supported.includes(format));
+      const formats = ['ean_13', 'ean_8'].filter(format => supported.includes(format));
       if (!formats.length) throw new Error('EAN未対応');
 
       detector = new BarcodeDetector({ formats });
@@ -244,19 +362,19 @@
       video.srcObject = stream;
       await video.play();
       await enableContinuousFocus();
-      resetScanState();
-      cameraBox.style.display = 'block';
+      consensus.reset();
+      cameraBox.classList.add('is-open');
+      document.body.classList.add('camera-open');
       scanBtn.disabled = true;
       scanning = true;
-      statusEl.textContent = '同じJANを複数回確認してから登録します。';
+      statusEl.textContent = `${activeList().name}へ登録します。`;
       setScanFeedback('バーコードを横向きにして枠内へ入れてください。');
       setupTorch();
       scheduleNextScan(0);
     } catch (error) {
       console.error(error);
-      statusEl.textContent = 'カメラを開始できません。HTTPS環境・カメラ権限・対応ブラウザを確認してください。';
+      stopCamera({ statusMessage: 'カメラを開始できません。HTTPS環境・カメラ権限・対応ブラウザを確認してください。' });
       showToast('カメラを開始できません');
-      stopCamera();
     }
   }
 
@@ -268,24 +386,22 @@
       if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
         await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
       }
-    } catch {
-      // 端末が連続オートフォーカス制約を拒否しても、通常のカメラ動作は継続する。
-    }
+    } catch {}
   }
 
   async function setupTorch() {
     torchBtn.disabled = true;
     try {
       const track = stream.getVideoTracks()[0];
-      const caps = track.getCapabilities ? track.getCapabilities() : {};
-      if (caps.torch) {
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      if (capabilities.torch) {
         torchBtn.disabled = false;
         torchBtn.dataset.on = '0';
       }
     } catch {}
   }
 
-  torchBtn.addEventListener('click', async () => {
+  async function toggleTorch() {
     try {
       const track = stream.getVideoTracks()[0];
       const on = torchBtn.dataset.on !== '1';
@@ -295,17 +411,10 @@
     } catch {
       showToast('ライトを切り替えられません');
     }
-  });
+  }
 
   function setScanFeedback(message) {
     scanFeedbackEl.textContent = message;
-  }
-
-  function resetScanState() {
-    consensus.reset();
-    cooldownUntil = 0;
-    waitingForClear = false;
-    clearStartedAt = 0;
   }
 
   function scheduleNextScan(delay = SCAN_CONFIG.intervalMs) {
@@ -314,10 +423,6 @@
     scanTimer = setTimeout(scanLoop, delay);
   }
 
-  /**
-   * 画面全体ではなく、白枠と同じ範囲だけをCanvasへ切り出す。
-   * 商品パッケージ上の文字や別のバーコードを検出対象から外すための処理。
-   */
   function captureGuideArea() {
     const sourceWidth = video.videoWidth;
     const sourceHeight = video.videoHeight;
@@ -357,8 +462,8 @@
       if (!['ean_13', 'ean_8'].includes(code.format)) continue;
       if (!isValidJanLength(jan) || !validateCheckDigit(jan)) continue;
       if (!hasReliableGeometry(code)) continue;
-      const previous = unique.get(jan);
       const area = code.boundingBox.width * code.boundingBox.height;
+      const previous = unique.get(jan);
       if (!previous || area > previous.area) unique.set(jan, { jan, area });
     }
     return [...unique.values()].sort((a, b) => b.area - a.area);
@@ -366,27 +471,24 @@
 
   function handleNoDetection(now) {
     consensus.observe('', now);
-    if (!waitingForClear) {
-      setScanFeedback('バーコードを横向きにして枠内へ入れてください。');
+    setScanFeedback('バーコードを横向きにして枠内へ入れてください。');
+  }
+
+  function finishConfirmedScan(jan, addResult) {
+    const listName = activeList().name;
+    if (addResult.ok) {
+      stopCamera({ statusMessage: `${jan} を${listName}へ登録しました。` });
+      requestAnimationFrame(() => {
+        listEl.querySelector('.item')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
       return;
     }
-
-    if (!clearStartedAt) clearStartedAt = now;
-    if (now - clearStartedAt >= SCAN_CONFIG.clearToRearmMs && now >= cooldownUntil) {
-      waitingForClear = false;
-      clearStartedAt = 0;
-      setScanFeedback('次のバーコードを枠内へ入れてください。');
+    if (addResult.reason === 'duplicate') {
+      stopCamera({ statusMessage: `${jan} は${listName}に登録済みです。` });
     }
   }
 
   function handleDetections(detections, now) {
-    clearStartedAt = 0;
-
-    if (waitingForClear || now < cooldownUntil) {
-      setScanFeedback('登録済みです。次の商品へ移る前に、バーコードを一度枠外へ出してください。');
-      return;
-    }
-
     if (detections.length > 1) {
       consensus.reset();
       setScanFeedback('複数のバーコードがあります。1つだけ枠内へ入れてください。');
@@ -401,16 +503,9 @@
     }
 
     const addResult = addJan(jan, { source: 'camera' });
-    cooldownUntil = now + SCAN_CONFIG.cooldownMs;
-    waitingForClear = true;
-    clearStartedAt = 0;
     consensus.reset();
-
-    if (addResult.ok) {
-      statusEl.textContent = `${jan} を登録しました。`;
-      setScanFeedback('登録しました。バーコードを一度枠外へ出してください。');
-    } else if (addResult.reason === 'duplicate') {
-      setScanFeedback('登録済みのJANです。バーコードを一度枠外へ出してください。');
+    if (addResult.ok || addResult.reason === 'duplicate') {
+      finishConfirmedScan(jan, addResult);
     } else {
       setScanFeedback('読取結果を破棄しました。位置を調整して再度読み取ってください。');
     }
@@ -434,55 +529,69 @@
     scheduleNextScan();
   }
 
-  function stopCamera() {
+  function stopCamera(options = {}) {
     scanning = false;
     clearTimeout(scanTimer);
     scanTimer = null;
-    resetScanState();
+    consensus.reset();
     if (stream) stream.getTracks().forEach(track => track.stop());
     stream = null;
+    detector = null;
     video.srcObject = null;
-    cameraBox.style.display = 'none';
+    cameraBox.classList.remove('is-open');
+    document.body.classList.remove('camera-open');
     scanBtn.disabled = false;
     torchBtn.disabled = true;
     torchBtn.dataset.on = '0';
     torchBtn.textContent = 'ライト';
     setScanFeedback('バーコードを横向きにして枠内へ入れてください。');
-    statusEl.textContent = 'スキャンしたJANはこの端末内に保存されます。';
+    statusEl.textContent = options.statusMessage || 'スキャンしたJANはこの端末内に保存されます。';
   }
 
-  // イベント登録
   scanBtn.addEventListener('click', startCamera);
-  closeCameraBtn.addEventListener('click', stopCamera);
+  closeCameraBtn.addEventListener('click', () => stopCamera());
+  torchBtn.addEventListener('click', toggleTorch);
 
   addBtn.addEventListener('click', () => {
     const result = addJan(manualInput.value, { source: 'manual' });
     if (result.ok) manualInput.value = '';
     manualInput.focus();
   });
-
-  manualInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') addBtn.click();
+  manualInput.addEventListener('keydown', event => {
+    if (event.key === 'Enter') addBtn.click();
   });
-
-  manualInput.addEventListener('focus', () => {
-    manualInput.select();
-  });
+  manualInput.addEventListener('focus', () => manualInput.select());
 
   copyAllBtn.addEventListener('click', () => {
-    copyText(items.map(x => x.jan).join('\n'));
+    copyText(activeList().items.map(item => item.jan).join('\n'));
   });
 
   clearBtn.addEventListener('click', () => {
-    if (!items.length) return;
-    if (confirm('保存リストをすべて削除しますか？')) {
-      items = [];
-      saveItems();
-      render();
-      showToast('すべて削除しました');
-    }
+    const list = activeList();
+    if (!list.items.length) return;
+    if (!confirm(`「${list.name}」の登録をすべて削除しますか？`)) return;
+    list.items = [];
+    saveState();
+    render();
+    showToast('リストを空にしました');
   });
 
-  window.addEventListener('beforeunload', stopCamera);
+  addListBtn.addEventListener('click', () => {
+    const list = JanListStore.addList(state);
+    if (!list) {
+      showToast('リストは最大6個です');
+      return;
+    }
+    saveState();
+    render();
+    showToast(`${list.name}を作成しました`);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    saveState();
+    stopCamera();
+  });
+
+  saveState();
   render();
 })();
