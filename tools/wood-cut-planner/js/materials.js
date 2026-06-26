@@ -11,5 +11,3 @@ window.WOOD_MATERIALS=[
 {id:'komeri-kplus-hinoki-9x9x1820',jan:'4920501350878',name:'K+ 桧材 約9×9×1820 mm',width:9,height:1820,thickness:9,category:'桧材',note:'コメリ取扱商品の表示からJAN・寸法確認済み。',sourceUrl:'',verifiedAt:'2026-06-26'},
 {id:'komeri-akamatsu-nobuchi-kd-35x35x3000',jan:'4528182156941',name:'赤松野縁KD 約35×35×3000 mm',width:35,height:3000,thickness:35,category:'赤松・野縁',note:'コメリ取扱商品。JAN・寸法確認済み。',sourceUrl:'https://www.komeri.com/shop/g/g1085900/',verifiedAt:'2026-06-26'}
 ];
-const woodScript='script';
-document.write(`<${woodScript} src="../jan-scanner/js/scan-consensus.js"></${woodScript}><${woodScript} src="js/material-jan.js"></${woodScript}><${woodScript} src="js/jan-camera-ui.js"></${woodScript}><${woodScript} src="js/jan-scanner.js"></${woodScript}>`);
