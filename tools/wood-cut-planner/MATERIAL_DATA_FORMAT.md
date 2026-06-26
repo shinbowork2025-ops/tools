@@ -23,6 +23,8 @@ window.WOOD_MATERIALS = [
 - `id`、`name`、`width`、`height`は必須です。
 - `jan`、`thickness`、`category`、`note`、`sourceUrl`、`verifiedAt`は省略できます。
 - 木材で一般的な「厚さ×幅×長さ」表記は、`thickness=厚さ`、`width=幅`、`height=長さ`として登録します。
+- 角棒は`thickness=断面の厚さ`、`width=断面の幅`、`height=全長`として登録します。
+- 丸棒は`thickness=直径`、`width=直径`、`height=全長`として登録します。現在の図面は長方形表示のため、断面形状は近似です。
 - `jan`は数字だけで登録し、同じJANを複数の商品へ割り当てないでください。
 - カメラでJANを読み取ると、完全一致する材料が自動選択されます。
 - マスタにないJANは、商品名と寸法を入力して材料を追加すると、ブラウザのローカルストレージへ端末専用データとして保存されます。
