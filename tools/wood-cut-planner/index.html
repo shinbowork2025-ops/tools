@@ -1,1 +1,140 @@
-<!-- wood cut planner prototype -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1f5f95">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>木材カット図（試作版）</title>
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <nav class="tool-nav" aria-label="ページ移動"><a href="../../index.html">← ツール一覧へ戻る</a></nav>
+    <div class="title-row">
+      <div><p class="eyebrow">試作版</p><h1>木材カット図</h1><p class="subtitle">長方形の材料を、端から端までの直線で分割します。</p></div>
+      <p id="saveState" class="save-state" aria-live="polite">未保存</p>
+    </div>
+  </header>
+
+  <section class="prototype-notice" aria-label="試作版について">
+    <strong>試作機能です</strong>
+    <p>操作方法と計算条件を確認するための試作版です。実際の加工前に、材料寸法・刃厚・カット順を現物と設備の条件に照らして確認してください。</p>
+  </section>
+
+  <section class="project-bar" aria-label="図面の保存">
+    <label class="project-name"><span>図面名</span><input id="projectName" type="text" maxlength="60" value="木材カット図"></label>
+    <div class="project-actions">
+      <button id="newProjectButton" type="button">新規</button>
+      <select id="savedProjectSelect" aria-label="保存済み図面"><option value="">保存済み図面</option></select>
+      <button id="openProjectButton" type="button">開く</button>
+      <button id="saveProjectButton" type="button" class="primary">保存</button>
+      <button id="deleteProjectButton" type="button" class="danger-text">保存データ削除</button>
+    </div>
+  </section>
+
+  <section class="sheet-tabs-wrap" aria-label="材料一覧">
+    <div id="sheetTabs" class="sheet-tabs" role="tablist"></div>
+    <button id="showAddSheetButton" type="button" class="add-sheet-button">＋ 材料を追加</button>
+  </section>
+
+  <section id="addSheetPanel" class="add-sheet-panel" hidden>
+    <div class="section-heading"><div><p class="eyebrow">材料マスタは後から差し替え可能</p><h2>材料を追加</h2></div><button id="closeAddSheetButton" type="button" class="icon-button" aria-label="閉じる">×</button></div>
+    <div class="material-grid">
+      <label><span>JAN・商品名で絞り込み</span><input id="materialFilter" type="search" inputmode="search" placeholder="JANまたは商品名"></label>
+      <label><span>登録材料</span><select id="materialSelect"><option value="">手入力</option></select></label>
+      <label><span>表示名</span><input id="sheetLabelInput" type="text" value="合板"></label>
+      <label><span>横寸法</span><span class="unit-input"><input id="sheetWidthInput" type="number" inputmode="decimal" min="1" step="0.1" value="910"><b>mm</b></span></label>
+      <label><span>縦寸法</span><span class="unit-input"><input id="sheetHeightInput" type="number" inputmode="decimal" min="1" step="0.1" value="1820"><b>mm</b></span></label>
+      <label><span>厚さ（任意）</span><span class="unit-input"><input id="sheetThicknessInput" type="number" inputmode="decimal" min="0" step="0.1" value="12"><b>mm</b></span></label>
+    </div>
+    <div class="inline-actions"><button id="addSheetButton" type="button" class="primary">この材料を追加</button><p id="materialNote" class="hint"></p></div>
+  </section>
+
+  <main class="workspace">
+    <aside class="control-panel">
+      <section class="panel selection-panel">
+        <div class="section-heading"><div><p class="eyebrow">カット入力</p><h2>選択中</h2></div><span id="selectionBadge" class="badge">領域を選択</span></div>
+        <p id="selectionDetail" class="selection-detail">図面内の領域をタップしてください。</p>
+
+        <fieldset id="edgeFieldset">
+          <legend>基準辺</legend>
+          <div class="edge-grid">
+            <label><input type="radio" name="cutEdge" value="left" checked><span>左から</span></label>
+            <label><input type="radio" name="cutEdge" value="right"><span>右から</span></label>
+            <label><input type="radio" name="cutEdge" value="top"><span>上から</span></label>
+            <label><input type="radio" name="cutEdge" value="bottom"><span>下から</span></label>
+          </div>
+        </fieldset>
+
+        <div class="cut-input-grid">
+          <label><span>残す寸法</span><span class="unit-input"><input id="cutOffsetInput" type="number" inputmode="decimal" min="0.1" step="0.1" placeholder="例：600"><b>mm</b></span></label>
+          <label><span>刃厚</span><span class="unit-input"><input id="kerfInput" type="number" inputmode="decimal" min="0" step="0.1" value="3"><b>mm</b></span></label>
+        </div>
+        <p class="hint">指定寸法を基準辺側に残し、刃厚は反対側から差し引きます。</p>
+        <div class="button-row">
+          <button id="applyCutButton" type="button" class="primary" disabled>カットを追加</button>
+          <button id="deleteCutButton" type="button" disabled>選択カットを削除</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading"><div><p class="eyebrow">編集</p><h2>操作</h2></div></div>
+        <div class="button-grid">
+          <button id="undoButton" type="button" disabled>↶ 元に戻す</button>
+          <button id="redoButton" type="button" disabled>↷ やり直す</button>
+          <button id="fitButton" type="button">全体表示</button>
+          <button id="printButton" type="button">印刷</button>
+          <button id="resetSheetButton" type="button">この材料の線を消す</button>
+          <button id="deleteSheetButton" type="button" class="danger-text">この材料を削除</button>
+        </div>
+      </section>
+
+      <section class="panel compact-panel">
+        <p class="eyebrow">操作方法</p>
+        <ul class="help-list">
+          <li>領域をタップして、辺と寸法を入力します。</li>
+          <li>カット線はドラッグして位置を調整できます。</li>
+          <li>2本指で拡大・縮小、余白を1本指で移動できます。</li>
+        </ul>
+      </section>
+    </aside>
+
+    <section class="drawing-column">
+      <div class="drawing-toolbar">
+        <div><strong id="activeSheetTitle">材料</strong><span id="activeSheetMeta"></span></div>
+        <div class="zoom-actions"><button id="zoomOutButton" type="button" aria-label="縮小">−</button><button id="zoomInButton" type="button" aria-label="拡大">＋</button></div>
+      </div>
+      <div id="drawingViewport" class="drawing-viewport">
+        <svg id="cutSvg" role="img" aria-label="木材カット図" tabindex="0"></svg>
+        <p id="drawingEmpty" class="drawing-empty" hidden>材料を追加してください。</p>
+      </div>
+      <p id="message" class="message" role="alert" aria-live="polite"></p>
+
+      <section class="result-panel">
+        <div class="result-section">
+          <div class="section-heading"><div><p class="eyebrow">作業指示</p><h2>カット順</h2></div><span id="cutCountBadge" class="badge">0本</span></div>
+          <ol id="instructionList" class="instruction-list"></ol>
+        </div>
+        <div class="result-section">
+          <div class="section-heading"><div><p class="eyebrow">切断後</p><h2>部材寸法</h2></div><span id="pieceCountBadge" class="badge">1枚</span></div>
+          <div class="table-wrap"><table><thead><tr><th>記号</th><th>横</th><th>縦</th></tr></thead><tbody id="pieceTableBody"></tbody></table></div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div id="printArea" class="print-area" aria-hidden="true"></div>
+
+<script src="js/materials.js"></script>
+<script src="js/model.js"></script>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>
