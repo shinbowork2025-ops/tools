@@ -1,6 +1,6 @@
 /**
  * 木材・板材マスタ。
- * 寸法はmm、width=幅、height=長さ、thickness=厚さ。
+ * 寸法はmm、width=幅または直径、height=長さ、thickness=厚さまたは直径。
  * JAN付き商品は、公式商品ページなどでJANと寸法を照合できたものだけを収録する。
  */
 window.WOOD_MATERIALS=[
@@ -45,5 +45,17 @@ window.WOOD_MATERIALS=[
   {"id":"komeri-kplus-build-sugi-12x30x910","jan":"4920501351554","name":"K+BUILD 杉材 約12×30×910 mm","width":30,"height":910,"thickness":12,"category":"杉材","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g178366/","verifiedAt":"2026-06-26"},
   {"id":"komeri-kplus-build-sugi-12x90x910","jan":"4920501351585","name":"K+BUILD 杉材 約12×90×910 mm","width":90,"height":910,"thickness":12,"category":"杉材","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g178362/","verifiedAt":"2026-06-26"},
   {"id":"komeri-kplus-build-sugi-12x30x600","jan":"4920501351608","name":"K+BUILD 杉材 約12×30×600 mm","width":30,"height":600,"thickness":12,"category":"杉材","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g178380/","verifiedAt":"2026-06-26"},
-  {"id":"komeri-kplus-build-sugi-12x60x600","jan":"4920501351622","name":"K+BUILD 杉材 約12×60×600 mm","width":60,"height":600,"thickness":12,"category":"杉材","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g178376/","verifiedAt":"2026-06-26"}
+  {"id":"komeri-kplus-build-sugi-12x60x600","jan":"4920501351622","name":"K+BUILD 杉材 約12×60×600 mm","width":60,"height":600,"thickness":12,"category":"杉材","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g178376/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-hinoki-craft-square-3x3x900","jan":"4905309056078","name":"檜工作材 3×3×900 mm","width":3,"height":900,"thickness":3,"category":"工作棒材・角棒","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140601/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-hinoki-craft-square-5x5x900","jan":"4905309056160","name":"檜工作材 5×5×900 mm","width":5,"height":900,"thickness":5,"category":"工作棒材・角棒","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140606/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-hinoki-craft-square-6x6x900","jan":"4905309056214","name":"檜工作材 6×6×900 mm","width":6,"height":900,"thickness":6,"category":"工作棒材・角棒","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140609/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-hinoki-craft-square-8x8x900","jan":"4905309056238","name":"檜工作材 8×8×900 mm","width":8,"height":900,"thickness":8,"category":"工作棒材・角棒","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140610/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-hinoki-craft-square-10x10x900","jan":"4905309056245","name":"檜工作材 10×10×900 mm","width":10,"height":900,"thickness":10,"category":"工作棒材・角棒","note":"公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140611/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-craft-round-3x900","jan":"4905309051721","name":"丸棒 直径3×900 mm","width":3,"height":900,"thickness":3,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140615/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-craft-round-4x900","jan":"4905309051738","name":"丸棒 直径4×900 mm","width":4,"height":900,"thickness":4,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140616/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-craft-round-6x900","jan":"4905309056528","name":"丸棒 直径6×900 mm","width":6,"height":900,"thickness":6,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。","sourceUrl":"https://www.komeri.com/shop/g/g2140618/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-yellow-cedar-round-10x300","jan":"4906374212017","name":"米ヒバ丸棒 直径10×300 mm","width":10,"height":300,"thickness":10,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。北海道取扱なし。","sourceUrl":"https://www.komeri.com/shop/g/g835313/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-yellow-cedar-round-15x300","jan":"4906374212024","name":"米ヒバ丸棒 直径15×300 mm","width":15,"height":300,"thickness":15,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。北海道取扱なし。","sourceUrl":"https://www.komeri.com/shop/g/g835314/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-yellow-cedar-round-20x300","jan":"4906374212031","name":"米ヒバ丸棒 直径20×300 mm","width":20,"height":300,"thickness":20,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。北海道取扱なし。","sourceUrl":"https://www.komeri.com/shop/g/g835315/","verifiedAt":"2026-06-26"},
+  {"id":"komeri-yellow-cedar-round-40x300","jan":"4906374212079","name":"米ヒバ丸棒 直径40×300 mm","width":40,"height":300,"thickness":40,"category":"工作棒材・丸棒","note":"丸棒のためwidth・thicknessは直径として登録。公式商品ページでJAN・単品サイズ確認済み。北海道取扱なし。","sourceUrl":"https://www.komeri.com/shop/g/g835317/","verifiedAt":"2026-06-26"}
 ];

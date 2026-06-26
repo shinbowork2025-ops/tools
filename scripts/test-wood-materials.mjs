@@ -28,7 +28,7 @@ function validJan(jan){
 
 assert(Array.isArray(materials),'材料マスタを配列として読める');
 const withJan=materials.filter(item=>item.jan);
-assert(withJan.length>=39,'確認済みJAN材料を39件以上収録');
+assert(withJan.length>=51,'確認済みJAN材料を51件以上収録');
 assert(new Set(withJan.map(item=>item.jan)).size===withJan.length,'JANに重複がない');
 assert(new Set(materials.map(item=>item.id)).size===materials.length,'内部IDに重複がない');
 for(const item of withJan){
@@ -40,6 +40,12 @@ const known=materials.find(item=>item.jan==='0400115001938');
 assert(known?.width===45&&known?.height===1820&&known?.thickness===18,'杉胴縁のJANから45×1820・厚さ18 mmを取得');
 const longMaterial=materials.find(item=>item.jan==='4920501358065');
 assert(longMaterial?.width===60&&longMaterial?.height===3985&&longMaterial?.thickness===15,'赤松KD材の長尺寸法を取得');
+const squareRod=materials.find(item=>item.jan==='4905309056078');
+assert(squareRod?.width===3&&squareRod?.height===900&&squareRod?.thickness===3,'檜角棒の3×3×900 mmを取得');
+const roundRod=materials.find(item=>item.jan==='4906374212031');
+assert(roundRod?.width===20&&roundRod?.height===300&&roundRod?.thickness===20,'米ヒバ丸棒の直径20×300 mmを取得');
+assert(withJan.filter(item=>item.category==='工作棒材・角棒').length===5,'工作用角棒を5商品収録');
+assert(withJan.filter(item=>item.category==='工作棒材・丸棒').length===7,'工作用丸棒を7商品収録');
 
 const html=await readFile(join(root,'tools/wood-cut-planner/index.html'),'utf8');
 const materialJan=await readFile(join(root,'tools/wood-cut-planner/js/material-jan.js'),'utf8');
