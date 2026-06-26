@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const root=join(dirname(fileURLToPath(import.meta.url)),'..');
 const source=await readFile(join(root,'tools/wood-cut-planner/js/materials.js'),'utf8');
-const context={window:{},document:{write:()=>{}}};
+const context={window:{}};
 vm.createContext(context);
 vm.runInContext(source,context);
 const materials=context.window.WOOD_MATERIALS;
@@ -37,13 +37,14 @@ for(const item of withJan){
 const known=materials.find(item=>item.jan==='0400115001938');
 assert(known?.width===45&&known?.height===1820&&known?.thickness===18,'杉胴縁のJANから45×1820・厚さ18 mmを取得');
 
+const html=await readFile(join(root,'tools/wood-cut-planner/index.html'),'utf8');
 const materialJan=await readFile(join(root,'tools/wood-cut-planner/js/material-jan.js'),'utf8');
 const cameraUi=await readFile(join(root,'tools/wood-cut-planner/js/jan-camera-ui.js'),'utf8');
 const scanner=await readFile(join(root,'tools/wood-cut-planner/js/jan-scanner.js'),'utf8');
-assert(source.includes('../jan-scanner/js/scan-consensus.js'),'既存の連続読取判定を再利用');
-assert(source.includes('js/material-jan.js'),'木材JANと材料マスタの連携処理を読込');
-assert(source.includes('js/jan-camera-ui.js'),'木材JANカメラUIを読込');
-assert(source.includes('js/jan-scanner.js'),'木材専用スキャナーを読込');
+assert(html.includes('../jan-scanner/js/scan-consensus.js'),'既存の連続読取判定を再利用');
+assert(html.includes('js/material-jan.js'),'木材JANと材料マスタの連携処理を読込');
+assert(html.includes('js/jan-camera-ui.js'),'木材JANカメラUIを読込');
+assert(html.includes('js/jan-scanner.js'),'木材専用スキャナーを読込');
 for(const id of ['woodScanButton','woodCameraBox','woodVideo','woodScanCanvas','materialScanState']){
   assert((materialJan+cameraUi+scanner).includes(id),`木材JAN拡張が ${id} を生成`);
 }
