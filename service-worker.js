@@ -5,7 +5,7 @@
  * 新版のService Workerは待機状態になり、画面側で利用者が更新を選ぶまで
  * 旧版を継続する。更新後は同じ接頭辞を持つ旧キャッシュを削除する。
  */
-const APP_VERSION = '1.1.1-prototype';
+const APP_VERSION = '1.1.2-prototype';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
