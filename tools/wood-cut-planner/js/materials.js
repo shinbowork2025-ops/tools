@@ -95,3 +95,6 @@ window.WOOD_MATERIALS=[
     verifiedAt:'2026-06-26'
   }
 ];
+
+// 材料マスタ読込直後にJAN連携を同期読込し、既存の画面本体より先に初期化する。
+document.write('<script src="../jan-scanner/js/scan-consensus.js"><\\/script><script src="js/material-jan.js"><\\/script><script src="js/jan-camera-ui.js"><\\/script><script src="js/jan-scanner.js"><\\/script>');
