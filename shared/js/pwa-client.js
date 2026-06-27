@@ -33,6 +33,12 @@
     if (label) button.textContent = label;
   }
 
+  function movePwaPanelForStandalone() {
+    if (!isStandalone) return;
+    const panel = document.querySelector('.pwa-panel');
+    panel?.parentElement?.append(panel);
+  }
+
   async function loadVersion() {
     try {
       const response = await fetch(versionUrl, { cache: 'no-store' });
@@ -245,6 +251,7 @@
     window.location.reload();
   });
 
+  movePwaPanelForStandalone();
   elements.offlineButton?.addEventListener('click', cacheOptionalData);
   setupInstallPrompt();
   setupConnectionStatus();
