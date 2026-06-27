@@ -1,21 +1,255 @@
-/** 木材用JANカメラスキャナー。 */
-(()=>{
+/**
+ * 木材用JANカメラスキャナー。
+ *
+ * 読取枠内のJANだけを対象にし、同じ値を複数回確認してから材料選択へ渡す。
+ * カメラ・ライト・連続読取の状態をこのファイルへ閉じ込める。
+ */
+(() => {
   'use strict';
-  const api=globalThis.WoodMaterialJan,u=globalThis.WoodJanCameraUI;if(!api||!u)return;
-  const C={i:180,n:5,g:700,d:600,w:1800,x:.05,y:.32,cw:.9,ch:.36,m:1280,mw:.28,mh:.07,a:1.5};
-  const ctx=u.canvas.getContext('2d',{alpha:false}),K=globalThis.JanScanConsensus;
-  const vote=K?new K({requiredHits:C.n,maxGapMs:C.g,minDurationMs:C.d,windowMs:C.w}):null;
-  let stream=null,detector=null,on=false,timer=null;
-  const feedback=text=>u.feedback.textContent=text;
-  function stop(message='JANを読み取ると登録材料を自動選択します。'){
-    on=false;clearTimeout(timer);vote?.reset();stream?.getTracks().forEach(t=>t.stop());stream=null;detector=null;u.video.srcObject=null;u.box.classList.remove('is-open');document.body.classList.remove('wood-camera-open');api.startButton.disabled=false;u.torch.disabled=true;u.torch.dataset.on='0';u.torch.textContent='ライト';feedback('バーコードを横向きにして枠内へ入れてください。');api.status(message);
+
+  const materialJan = globalThis.WoodMaterialJan;
+  const cameraUi = globalThis.WoodJanCameraUI;
+  if (!materialJan || !cameraUi) return;
+
+  const SCAN_CONFIG = Object.freeze({
+    intervalMs: 180,
+    requiredHits: 5,
+    maxGapMs: 700,
+    minDurationMs: 600,
+    confirmationWindowMs: 1800,
+    cropX: 0.05,
+    cropY: 0.32,
+    cropWidth: 0.90,
+    cropHeight: 0.36,
+    maxCanvasWidth: 1280,
+    minBoxWidthRatio: 0.28,
+    minBoxHeightRatio: 0.07,
+    minAspectRatio: 1.5
+  });
+
+  const scanContext = cameraUi.canvas.getContext('2d', { alpha: false });
+  const Consensus = globalThis.JanScanConsensus;
+  const consensus = Consensus ? new Consensus({
+    requiredHits: SCAN_CONFIG.requiredHits,
+    maxGapMs: SCAN_CONFIG.maxGapMs,
+    minDurationMs: SCAN_CONFIG.minDurationMs,
+    windowMs: SCAN_CONFIG.confirmationWindowMs
+  }) : null;
+
+  let stream = null;
+  let detector = null;
+  let scanning = false;
+  let scanTimer = null;
+
+  function setFeedback(message) {
+    cameraUi.feedback.textContent = message;
   }
-  async function cameraOptions(){try{const t=stream?.getVideoTracks()[0],c=t?.getCapabilities? t.getCapabilities():{};if(Array.isArray(c.focusMode)&&c.focusMode.includes('continuous'))await t.applyConstraints({advanced:[{focusMode:'continuous'}]});if(c.torch){u.torch.disabled=false;u.torch.dataset.on='0';}}catch{}}
-  async function torch(){try{const t=stream?.getVideoTracks()[0],v=u.torch.dataset.on!=='1';if(!t)return;await t.applyConstraints({advanced:[{torch:v}]});u.torch.dataset.on=v?'1':'0';u.torch.textContent=v?'ライトOFF':'ライト';}catch{api.status('ライトを切り替えられません。');}}
-  function capture(){const sw=u.video.videoWidth,sh=u.video.videoHeight;if(!sw||!sh)return false;const x=Math.round(sw*C.x),y=Math.round(sh*C.y),cw=Math.round(sw*C.cw),ch=Math.round(sh*C.ch),s=Math.min(1,C.m/cw),w=Math.max(1,Math.round(cw*s)),h=Math.max(1,Math.round(ch*s));if(u.canvas.width!==w||u.canvas.height!==h){u.canvas.width=w;u.canvas.height=h;}ctx.drawImage(u.video,x,y,cw,ch,0,0,w,h);return true;}
-  function reliable(codes){const map=new Map();for(const code of codes){const jan=api.digits(code.rawValue),b=code.boundingBox;if(!['ean_13','ean_8'].includes(code.format)||!api.valid(jan)||!b)continue;const wr=b.width/u.canvas.width,hr=b.height/u.canvas.height,ar=b.width/Math.max(b.height,1);if(wr<C.mw||hr<C.mh||ar<C.a)continue;const area=b.width*b.height;if(!map.has(jan)||area>map.get(jan).area)map.set(jan,{jan,area});}return [...map.values()].sort((a,b)=>b.area-a.area);}
-  const next=(delay=C.i)=>{clearTimeout(timer);if(on)timer=setTimeout(loop,delay);};
-  async function loop(){if(!on||!detector)return;try{if(capture()){const found=reliable(await detector.detect(u.canvas));if(found.length>1){vote?.reset();feedback('複数のバーコードがあります。1つだけ枠内へ入れてください。');}else if(found.length){const jan=found[0].jan,r=vote?.observe(jan,Date.now())||{confirmed:true,hits:1,requiredHits:1};if(r.confirmed){stop(`${jan} を読み取りました。`);navigator.vibrate?.([100,40,100]);api.select(jan);return;}feedback(`読取確認中 ${r.hits}/${r.requiredHits}：${jan}`);}else{vote?.observe('',Date.now());feedback('バーコードを横向きにして枠内へ入れてください。');}}}catch(e){console.warn('木材JANを検出できませんでした。',e);}next();}
-  async function start(){if(!('BarcodeDetector'in window)){api.status('カメラ読取に未対応です。JANを検索欄へ手入力し、Enterを押してください。');return;}try{const all=await BarcodeDetector.getSupportedFormats(),formats=['ean_13','ean_8'].filter(x=>all.includes(x));if(!formats.length)throw Error('EAN未対応');detector=new BarcodeDetector({formats});stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});u.video.srcObject=stream;await u.video.play();await cameraOptions();vote?.reset();u.box.classList.add('is-open');document.body.classList.add('wood-camera-open');api.startButton.disabled=true;on=true;api.status('木材商品のJANを読み取り中です。');next(0);}catch(e){console.error(e);stop('カメラを開始できません。HTTPS・カメラ権限・対応ブラウザを確認してください。');}}
-  api.startButton.addEventListener('click',start);u.close.addEventListener('click',()=>stop());u.torch.addEventListener('click',torch);window.addEventListener('beforeunload',()=>stop());
+
+  function stopCamera(message = 'JANを読み取ると登録材料を自動選択します。') {
+    scanning = false;
+    clearTimeout(scanTimer);
+    scanTimer = null;
+    consensus?.reset();
+
+    stream?.getTracks().forEach(track => track.stop());
+    stream = null;
+    detector = null;
+    cameraUi.video.srcObject = null;
+
+    cameraUi.box.classList.remove('is-open');
+    document.body.classList.remove('wood-camera-open');
+    materialJan.startButton.disabled = false;
+    cameraUi.torch.disabled = true;
+    cameraUi.torch.dataset.on = '0';
+    cameraUi.torch.textContent = 'ライト';
+    setFeedback('バーコードを横向きにして枠内へ入れてください。');
+    materialJan.status(message);
+  }
+
+  async function configureCameraTrack() {
+    try {
+      const track = stream?.getVideoTracks()[0];
+      const capabilities = track?.getCapabilities ? track.getCapabilities() : {};
+
+      if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes('continuous')) {
+        await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+      }
+
+      if (capabilities.torch) {
+        cameraUi.torch.disabled = false;
+        cameraUi.torch.dataset.on = '0';
+      }
+    } catch {
+      // 連続フォーカスやライトは端末依存のため、失敗しても読取自体は継続する。
+    }
+  }
+
+  async function toggleTorch() {
+    try {
+      const track = stream?.getVideoTracks()[0];
+      if (!track) return;
+
+      const nextState = cameraUi.torch.dataset.on !== '1';
+      await track.applyConstraints({ advanced: [{ torch: nextState }] });
+      cameraUi.torch.dataset.on = nextState ? '1' : '0';
+      cameraUi.torch.textContent = nextState ? 'ライトOFF' : 'ライト';
+    } catch {
+      materialJan.status('ライトを切り替えられません。');
+    }
+  }
+
+  function captureGuideArea() {
+    const sourceWidth = cameraUi.video.videoWidth;
+    const sourceHeight = cameraUi.video.videoHeight;
+    if (!sourceWidth || !sourceHeight) return false;
+
+    const sourceX = Math.round(sourceWidth * SCAN_CONFIG.cropX);
+    const sourceY = Math.round(sourceHeight * SCAN_CONFIG.cropY);
+    const cropWidth = Math.round(sourceWidth * SCAN_CONFIG.cropWidth);
+    const cropHeight = Math.round(sourceHeight * SCAN_CONFIG.cropHeight);
+    const scale = Math.min(1, SCAN_CONFIG.maxCanvasWidth / cropWidth);
+    const targetWidth = Math.max(1, Math.round(cropWidth * scale));
+    const targetHeight = Math.max(1, Math.round(cropHeight * scale));
+
+    if (cameraUi.canvas.width !== targetWidth || cameraUi.canvas.height !== targetHeight) {
+      cameraUi.canvas.width = targetWidth;
+      cameraUi.canvas.height = targetHeight;
+    }
+
+    scanContext.drawImage(
+      cameraUi.video,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      targetWidth,
+      targetHeight
+    );
+    return true;
+  }
+
+  function hasReliableGeometry(code) {
+    const box = code?.boundingBox;
+    if (!box || !cameraUi.canvas.width || !cameraUi.canvas.height) return false;
+
+    const widthRatio = box.width / cameraUi.canvas.width;
+    const heightRatio = box.height / cameraUi.canvas.height;
+    const aspectRatio = box.width / Math.max(box.height, 1);
+
+    return widthRatio >= SCAN_CONFIG.minBoxWidthRatio
+      && heightRatio >= SCAN_CONFIG.minBoxHeightRatio
+      && aspectRatio >= SCAN_CONFIG.minAspectRatio;
+  }
+
+  function reliableDetections(codes) {
+    const uniqueByJan = new Map();
+
+    for (const code of codes) {
+      const jan = materialJan.digits(code.rawValue);
+      if (!['ean_13', 'ean_8'].includes(code.format)) continue;
+      if (!materialJan.valid(jan) || !hasReliableGeometry(code)) continue;
+
+      const area = code.boundingBox.width * code.boundingBox.height;
+      const previous = uniqueByJan.get(jan);
+      if (!previous || area > previous.area) uniqueByJan.set(jan, { jan, area });
+    }
+
+    return [...uniqueByJan.values()].sort((left, right) => right.area - left.area);
+  }
+
+  function scheduleNextScan(delay = SCAN_CONFIG.intervalMs) {
+    clearTimeout(scanTimer);
+    if (scanning) scanTimer = setTimeout(scanLoop, delay);
+  }
+
+  function handleDetection(detections) {
+    if (detections.length > 1) {
+      consensus?.reset();
+      setFeedback('複数のバーコードがあります。1つだけ枠内へ入れてください。');
+      return false;
+    }
+
+    if (!detections.length) {
+      consensus?.observe('', Date.now());
+      setFeedback('バーコードを横向きにして枠内へ入れてください。');
+      return false;
+    }
+
+    const jan = detections[0].jan;
+    const result = consensus?.observe(jan, Date.now()) || {
+      confirmed: true,
+      hits: 1,
+      requiredHits: 1
+    };
+
+    if (!result.confirmed) {
+      setFeedback(`読取確認中 ${result.hits}/${result.requiredHits}：${jan}`);
+      return false;
+    }
+
+    stopCamera(`${jan} を読み取りました。`);
+    navigator.vibrate?.([100, 40, 100]);
+    materialJan.select(jan);
+    return true;
+  }
+
+  async function scanLoop() {
+    if (!scanning || !detector) return;
+
+    try {
+      if (captureGuideArea()) {
+        const codes = await detector.detect(cameraUi.canvas);
+        if (handleDetection(reliableDetections(codes))) return;
+      }
+    } catch (error) {
+      console.warn('木材JANを検出できませんでした。', error);
+    }
+
+    scheduleNextScan();
+  }
+
+  async function startCamera() {
+    if (!('BarcodeDetector' in window)) {
+      materialJan.status('カメラ読取に未対応です。JANを検索欄へ手入力し、Enterを押してください。');
+      return;
+    }
+
+    try {
+      const supported = await BarcodeDetector.getSupportedFormats();
+      const formats = ['ean_13', 'ean_8'].filter(format => supported.includes(format));
+      if (!formats.length) throw new Error('EAN未対応');
+
+      detector = new BarcodeDetector({ formats });
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+        audio: false
+      });
+
+      cameraUi.video.srcObject = stream;
+      await cameraUi.video.play();
+      await configureCameraTrack();
+      consensus?.reset();
+
+      cameraUi.box.classList.add('is-open');
+      document.body.classList.add('wood-camera-open');
+      materialJan.startButton.disabled = true;
+      scanning = true;
+      materialJan.status('木材商品のJANを読み取り中です。');
+      scheduleNextScan(0);
+    } catch (error) {
+      console.error(error);
+      stopCamera('カメラを開始できません。HTTPS・カメラ権限・対応ブラウザを確認してください。');
+    }
+  }
+
+  materialJan.startButton.addEventListener('click', startCamera);
+  cameraUi.close.addEventListener('click', () => stopCamera());
+  cameraUi.torch.addEventListener('click', toggleTorch);
+  window.addEventListener('beforeunload', () => stopCamera());
 })();
