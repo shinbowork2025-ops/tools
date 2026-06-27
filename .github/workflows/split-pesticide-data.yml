@@ -1,0 +1,34 @@
+name: Split pesticide data
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tools/pesticide-search/js/data.js'
+      - 'scripts/split-pesticide-data.mjs'
+      - '.github/workflows/split-pesticide-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate split files
+        run: node scripts/split-pesticide-data.mjs
+      - name: Commit generated files
+        run: |
+          if git diff --quiet -- tools/pesticide-search/js/garden-data.js tools/pesticide-search/js/all-data-extra.js; then
+            echo 'No generated changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/pesticide-search/js/garden-data.js tools/pesticide-search/js/all-data-extra.js
+          git commit -m '農薬の園芸用・追加データを再生成'
+          git push
