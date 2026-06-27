@@ -251,3 +251,19 @@
   loadVersion();
   registerServiceWorker();
 })();
+
+(() => {
+  'use strict';
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isStandalone || typeof screen.orientation?.lock !== 'function') return;
+
+  const lockPortrait = () => screen.orientation.lock('portrait-primary').catch(() => {
+    // 非対応端末ではmanifest.webmanifestのorientation指定に任せる。
+  });
+
+  lockPortrait();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') lockPortrait();
+  });
+})();
