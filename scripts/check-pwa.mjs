@@ -4,6 +4,7 @@
  * - precache対象の実在
  * - 全画面のmanifest・PWA登録処理の参照
  * - manifestのJSON構文と必須項目
+ * - 縦画面固定設定と補助処理
  */
 import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, extname, join } from 'node:path';
@@ -44,6 +45,7 @@ async function collectHtml(directory) {
 
 const metadata = JSON.parse(await readFile(join(root, 'version.json'), 'utf8'));
 const serviceWorker = await readFile(join(root, 'service-worker.js'), 'utf8');
+const pwaClient = await readFile(join(root, 'shared/js/pwa-client.js'), 'utf8');
 const versionMatch = serviceWorker.match(/const APP_VERSION = '([^']+)'/);
 
 if (!versionMatch) fail('service-worker.jsからAPP_VERSIONを取得できません');
@@ -58,6 +60,14 @@ for (const key of ['name', 'short_name', 'start_url', 'scope', 'display', 'icons
 if (Array.isArray(manifest.icons) && manifest.icons.some(icon => icon.purpose === 'maskable')) {
   ok('maskableアイコンを確認');
 } else fail('maskableアイコンがありません');
+
+if (manifest.orientation === 'portrait-primary') {
+  ok('manifestの縦画面固定を確認');
+} else fail('manifest.webmanifestのorientationがportrait-primaryではありません');
+
+if (/screen\.orientation\.lock\(['"]portrait-primary['"]\)/.test(pwaClient)) {
+  ok('PWA起動時の縦画面固定処理を確認');
+} else fail('pwa-client.jsに縦画面固定処理がありません');
 
 const assetBlocks = [...serviceWorker.matchAll(/const (?:CORE_ASSETS|OPTIONAL_ASSETS) = \[([\s\S]*?)\];/g)];
 const assetPaths = assetBlocks.flatMap(match => [...match[1].matchAll(/'([^']+)'/g)].map(item => item[1]));
