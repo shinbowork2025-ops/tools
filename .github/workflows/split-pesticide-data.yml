@@ -26,12 +26,12 @@ jobs:
         run: node scripts/split-pesticide-data.mjs
       - name: Commit generated files
         run: |
-          if git diff --quiet -- tools/pesticide-search/js/garden-data.js tools/pesticide-search/js/all-data-extra.js; then
-            echo 'No generated changes'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add tools/pesticide-search/js/garden-data.js tools/pesticide-search/js/all-data-extra.js
+          if git diff --cached --quiet; then
+            echo 'No generated changes'
+            exit 0
+          fi
           git commit -m '農薬の園芸用・追加データを再生成'
           git push
