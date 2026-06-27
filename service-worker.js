@@ -5,7 +5,7 @@
  * 静的ファイルは版番号付きキャッシュを優先し、同じ版の起動時に不要な再通信を行わない。
  * 新版は待機状態になり、画面側で利用者が更新を選んだ時だけ切り替える。
  */
-const APP_VERSION = '1.1.5-prototype';
+const APP_VERSION = '1.1.6-prototype';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
