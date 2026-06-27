@@ -34,6 +34,7 @@
           location.reload();
           return;
         }
+
         if (!toggle.checked) sessionStorage.removeItem(STORAGE_KEY);
         originalOnChange?.call(toggle, event);
       };
@@ -44,6 +45,7 @@
       }
     } catch (error) {
       console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
       const status = document.getElementById('directProductStatus');
       if (status) status.textContent = '農薬データを読み込めませんでした。通信状態を確認して再読み込みしてください。';
     }
