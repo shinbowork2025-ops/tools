@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<label class="garden-toggle-wrap" for="showAllPesticides" title="オンにすると園芸グループ以外の登録農薬も表示">
+<label class="garden-toggle-wrap" for="showAllPesticides" title="オンにすると園芸グループ以外の登録農薬も読み込んで表示">
   <input type="checkbox" id="showAllPesticides">
   <span class="toggle-track" aria-hidden="true"></span>
   <span class="garden-toggle-label">すべての農薬を表示</span>
@@ -52,14 +52,12 @@
 </div>
 
 <div class="summary" id="summary"></div>
-<div class="notice">初期状態では園芸グループ掲載品だけを表示します。使用前に、製品ラベルと最新の登録内容を必ず確認してください。容量別商品を確認できたものはすべて併記し、直接の商品ページを特定できない登録名はコメリ内検索を表示します。</div>
+<div class="notice">初期状態では園芸グループ掲載品のデータだけを読み込みます。「すべての農薬を表示」をオンにすると全登録データを追加で読み込みます。使用前に、製品ラベルと最新の登録内容を必ず確認してください。容量別商品を確認できたものはすべて併記し、直接の商品ページを特定できない登録名はコメリ内検索を表示します。</div>
 <div class="results" id="results"></div>
 
 <script src="../../shared/js/ean13.js" defer></script>
-<script src="js/data.js" defer></script>
+<script src="js/garden-data.js" defer></script>
 <script src="js/multi-crop.js" defer></script>
-<script src="js/app.js" defer></script>
-<script src="js/multi-crop-ui.js" defer></script>
-<script src="../../shared/js/pwa-client.js" defer></script>
+<script src="js/data-loader.js" defer></script>
 </body>
 </html>

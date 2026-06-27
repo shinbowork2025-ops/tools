@@ -5,14 +5,14 @@
  * 新版のService Workerは待機状態になり、画面側で利用者が更新を選ぶまで
  * 旧版を継続する。更新後は同じ接頭辞を持つ旧キャッシュを削除する。
  */
-const APP_VERSION = '1.1.3-prototype';
+const APP_VERSION = '1.1.4-prototype';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
 
 /*
- * 初回インストール時に保存する基本ファイル。
- * 約29 MBの農薬データは初回通信量を抑えるため任意保存とする。
+ * 初回インストール時は園芸用農薬データだけを保存する。
+ * 園芸外の登録データは利用者が全件表示を選んだ時に取得する。
  */
 const CORE_ASSETS = [
   './',
@@ -62,13 +62,15 @@ const CORE_ASSETS = [
   './tools/pesticide-search/',
   './tools/pesticide-search/index.html',
   './tools/pesticide-search/styles.css',
+  './tools/pesticide-search/js/garden-data.js',
+  './tools/pesticide-search/js/data-loader.js',
   './tools/pesticide-search/js/app.js',
   './tools/pesticide-search/js/multi-crop.js',
   './tools/pesticide-search/js/multi-crop-ui.js'
 ];
 
 const OPTIONAL_ASSETS = [
-  './tools/pesticide-search/js/data.js'
+  './tools/pesticide-search/js/all-data-extra.js'
 ];
 
 function absoluteUrl(path) {
@@ -83,7 +85,6 @@ async function precacheCoreAssets() {
 
 self.addEventListener('install', event => {
   event.waitUntil(precacheCoreAssets());
-  // skipWaiting()はここでは呼ばない。利用中の画面を勝手に新版へ切り替えないため。
 });
 
 self.addEventListener('activate', event => {
@@ -122,8 +123,6 @@ async function networkFirst(request, cacheName, fallbackUrl = null) {
 }
 
 function cacheFirstWithRefresh(request, cacheName, fetchEvent) {
-  // waitUntilはfetchイベントの処理中に同期的に登録する必要があるため、
-  // 更新用Promiseを先に作り、キャッシュ確認とは別にイベントへ渡す。
   const refresh = (async () => {
     const cache = await caches.open(cacheName);
     const response = await fetch(request);
@@ -165,7 +164,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const cacheName = isOptionalData(url) || /\/js\/data\.js$/.test(url.pathname)
+  const cacheName = isOptionalData(url) || /\/js\/(?:data|all-data-extra)\.js$/.test(url.pathname)
     ? DATA_CACHE_NAME
     : PRECACHE_NAME;
   event.respondWith(cacheFirstWithRefresh(request, cacheName, event));
