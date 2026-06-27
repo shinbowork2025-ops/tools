@@ -1,18 +1,18 @@
 /*
  * 業務補助ツール Service Worker
  *
- * APP_VERSIONを変更すると、新しいキャッシュ領域が作られる。
- * 新版のService Workerは待機状態になり、画面側で利用者が更新を選ぶまで
- * 旧版を継続する。更新後は同じ接頭辞を持つ旧キャッシュを削除する。
+ * APP_VERSIONを変更すると新しいキャッシュ領域を作成する。
+ * 静的ファイルは版番号付きキャッシュを優先し、同じ版の起動時に不要な再通信を行わない。
+ * 新版は待機状態になり、画面側で利用者が更新を選んだ時だけ切り替える。
  */
-const APP_VERSION = '1.1.4-prototype';
+const APP_VERSION = '1.1.5-prototype';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
 
 /*
- * 初回インストール時は園芸用農薬データだけを保存する。
- * 園芸外の登録データは利用者が全件表示を選んだ時に取得する。
+ * 初回インストール時は基本画面と園芸用農薬データを保存する。
+ * 園芸外の登録データは、利用者が全件表示またはオフライン保存を選んだ時に取得する。
  */
 const CORE_ASSETS = [
   './',
@@ -26,6 +26,7 @@ const CORE_ASSETS = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
+  './shared/js/jan-code.js',
   './shared/js/pwa-client.js',
   './shared/js/ean13.js',
   './tools/wood-cut-planner/',
@@ -91,11 +92,13 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keep = new Set([PRECACHE_NAME, DATA_CACHE_NAME]);
     const names = await caches.keys();
+
     await Promise.all(
       names
         .filter(name => name.startsWith(`${CACHE_PREFIX}-`) && !keep.has(name))
         .map(name => caches.delete(name))
     );
+
     await self.clients.claim();
   })());
 });
@@ -109,38 +112,41 @@ async function putIfCacheable(cache, request, response) {
 
 async function networkFirst(request, cacheName, fallbackUrl = null) {
   const cache = await caches.open(cacheName);
+
   try {
     const response = await fetch(request);
     return await putIfCacheable(cache, request, response);
   } catch {
     const cached = await cache.match(request, { ignoreSearch: true });
     if (cached) return cached;
+
     const anyCached = await caches.match(request, { ignoreSearch: true });
     if (anyCached) return anyCached;
+
     if (fallbackUrl) return caches.match(absoluteUrl(fallbackUrl));
     throw new Error('Network and cache both unavailable');
   }
 }
 
-function cacheFirstWithRefresh(request, cacheName, fetchEvent) {
-  const refresh = (async () => {
-    const cache = await caches.open(cacheName);
+/**
+ * 版番号付きキャッシュを先に使う。
+ * 更新確認はService Worker自体の更新処理へ任せ、各画面の起動時には再取得しない。
+ */
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request, { ignoreSearch: true });
+  if (cached) return cached;
+
+  // 一部のデータは基本キャッシュへ事前保存されるため、全キャッシュも確認する。
+  const anyCached = await caches.match(request, { ignoreSearch: true });
+  if (anyCached) return anyCached;
+
+  try {
     const response = await fetch(request);
-    return putIfCacheable(cache, request, response);
-  })();
-  fetchEvent.waitUntil(refresh.catch(() => null));
-
-  return (async () => {
-    const cache = await caches.open(cacheName);
-    const cached = await cache.match(request, { ignoreSearch: true });
-    if (cached) return cached;
-
-    try {
-      return await refresh;
-    } catch {
-      throw new Error('Resource unavailable');
-    }
-  })();
+    return await putIfCacheable(cache, request, response);
+  } catch {
+    throw new Error('Resource unavailable');
+  }
 }
 
 function isOptionalData(url) {
@@ -167,16 +173,18 @@ self.addEventListener('fetch', event => {
   const cacheName = isOptionalData(url) || /\/js\/(?:data|all-data-extra)\.js$/.test(url.pathname)
     ? DATA_CACHE_NAME
     : PRECACHE_NAME;
-  event.respondWith(cacheFirstWithRefresh(request, cacheName, event));
+  event.respondWith(cacheFirst(request, cacheName));
 });
 
 async function cacheOptionalAssets(port) {
   const cache = await caches.open(DATA_CACHE_NAME);
+
   for (let index = 0; index < OPTIONAL_ASSETS.length; index += 1) {
     const path = OPTIONAL_ASSETS[index];
     const request = new Request(absoluteUrl(path), { cache: 'reload' });
     const response = await fetch(request);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+
     await cache.put(request, response);
     port?.postMessage({
       type: 'CACHE_PROGRESS',
@@ -185,6 +193,7 @@ async function cacheOptionalAssets(port) {
       path
     });
   }
+
   port?.postMessage({ type: 'CACHE_COMPLETE', version: APP_VERSION });
 }
 
@@ -193,6 +202,7 @@ async function optionalCacheStatus() {
   const states = await Promise.all(
     OPTIONAL_ASSETS.map(async path => Boolean(await cache.match(absoluteUrl(path), { ignoreSearch: true })))
   );
+
   return {
     complete: states.every(Boolean),
     cached: states.filter(Boolean).length,
