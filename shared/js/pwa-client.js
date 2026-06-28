@@ -10,6 +10,8 @@
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
   const elements = {
+    panel: document.querySelector('.pwa-panel'),
+    actions: document.querySelector('.pwa-panel .pwa-actions'),
     installButton: document.getElementById('pwaInstallButton'),
     offlineButton: document.getElementById('pwaOfflineButton'),
     status: document.getElementById('pwaStatus'),
@@ -33,10 +35,28 @@
     if (label) button.textContent = label;
   }
 
-  function movePwaPanelForStandalone() {
-    if (!isStandalone) return;
-    const panel = document.querySelector('.pwa-panel');
-    panel?.parentElement?.append(panel);
+  function loadHomeEnhancements() {
+    if (!document.querySelector('.tool-grid') || document.querySelector('script[data-home-enhancements]')) return;
+    const script = document.createElement('script');
+    script.src = new URL('assets/site.js', rootUrl).href;
+    script.defer = true;
+    script.dataset.homeEnhancements = '1';
+    document.head.appendChild(script);
+  }
+
+  function prepareStandalonePanel() {
+    if (!isStandalone || !elements.panel) return;
+    elements.panel.classList.add('is-standalone');
+    if (elements.offlineButton) elements.offlineButton.textContent = '農薬データを追加ダウンロード';
+    if (elements.actions) elements.actions.hidden = true;
+    if (elements.version?.parentElement?.firstChild) elements.version.parentElement.firstChild.textContent = 'バージョン情報：';
+    elements.panel.parentElement?.append(elements.panel);
+  }
+
+  function setOptionalDownloadVisibility(complete) {
+    if (!isStandalone || !elements.offlineButton) return;
+    elements.offlineButton.hidden = complete;
+    if (elements.actions) elements.actions.hidden = complete;
   }
 
   async function loadVersion() {
@@ -114,7 +134,6 @@
       });
     });
 
-    // GitHub Pagesを開いたままにしている場合も定期的に新版を確認する。
     window.setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') reg.update().catch(() => {});
@@ -147,10 +166,12 @@
       if (result.complete) {
         elements.offlineButton.textContent = 'オフライン用データ保存済み';
         elements.offlineButton.disabled = true;
+        setOptionalDownloadVisibility(true);
         setStatus('基本画面と農薬データをオフラインで利用できます。', 'success');
       } else {
-        elements.offlineButton.textContent = 'オフライン用データを保存';
+        elements.offlineButton.textContent = isStandalone ? '農薬データを追加ダウンロード' : 'オフライン用データを保存';
         elements.offlineButton.disabled = false;
+        setOptionalDownloadVisibility(false);
         setStatus('基本機能は保存済みです。農薬データも保存すると、全ツールをオフラインで利用できます。');
       }
     } catch {
@@ -160,27 +181,29 @@
 
   async function cacheOptionalData() {
     if (!elements.offlineButton) return;
-    setButtonBusy(elements.offlineButton, true, '保存中…');
+    setButtonBusy(elements.offlineButton, true, 'ダウンロード中…');
     setStatus('農薬データを保存しています。通信を切らずにこの画面を開いてください。');
 
     try {
       await sendWorkerMessage('CACHE_OPTIONAL', message => {
         if (message.type === 'CACHE_PROGRESS') {
+          elements.offlineButton.textContent = `ダウンロード中（${message.completed}/${message.total}）`;
           setStatus(`オフライン用データを保存中（${message.completed}/${message.total}）`);
         }
       });
 
       if (navigator.storage?.persist) {
-        // 保存データが端末の自動整理で消えにくくなるよう、可能な端末では永続化を依頼する。
         await navigator.storage.persist().catch(() => false);
       }
 
       elements.offlineButton.textContent = 'オフライン用データ保存済み';
       elements.offlineButton.disabled = true;
+      setOptionalDownloadVisibility(true);
       setStatus('約29 MBの農薬データを含め、オフライン利用の準備が完了しました。', 'success');
     } catch (error) {
-      elements.offlineButton.textContent = 'オフライン用データを保存';
+      elements.offlineButton.textContent = isStandalone ? '農薬データを追加ダウンロード' : 'オフライン用データを保存';
       elements.offlineButton.disabled = false;
+      setOptionalDownloadVisibility(false);
       setStatus(`保存できませんでした：${error.message}`, 'error');
     }
   }
@@ -245,13 +268,13 @@
   }
 
   navigator.serviceWorker?.addEventListener('controllerchange', () => {
-    // 初回登録時のclients.claimでは再読み込みせず、利用者が更新を選んだ場合だけ切り替える。
     if (!updateRequested || reloadingForUpdate) return;
     reloadingForUpdate = true;
     window.location.reload();
   });
 
-  movePwaPanelForStandalone();
+  loadHomeEnhancements();
+  prepareStandalonePanel();
   elements.offlineButton?.addEventListener('click', cacheOptionalData);
   setupInstallPrompt();
   setupConnectionStatus();

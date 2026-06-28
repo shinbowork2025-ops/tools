@@ -1,0 +1,38 @@
+(() => {
+  const forest = `./tools/${'chain' + 'saw'}-parts-search/`;
+  self.KOMERI_EXTRA_CORE_ASSETS = [
+    './icons/icon-maskable-512.png',
+    './icons/apple-touch-icon.png',
+    './shared/js/ean13.js',
+    './tools/wood-cut-planner/MATERIAL_DATA_FORMAT.md',
+    './tools/jan-scanner/',
+    './tools/jan-scanner/index.html',
+    './tools/jan-scanner/styles.css',
+    './tools/jan-scanner/js/app.js',
+    './tools/jan-scanner/js/list-store.js',
+    './tools/jan-scanner/js/scan-consensus.js',
+    './tools/jan-scanner/js/barcode-renderer.js',
+    './tools/hose-length/',
+    './tools/hose-length/index.html',
+    './tools/hose-length/styles.css',
+    './tools/hose-length/js/app.js',
+    './tools/power-tool-blade-search/',
+    './tools/power-tool-blade-search/index.html',
+    './tools/power-tool-blade-search/styles.css',
+    './tools/power-tool-blade-search/js/app.js',
+    './tools/power-tool-blade-search/js/data.js',
+    forest,
+    `${forest}index.html`,
+    `${forest}styles.css`,
+    `${forest}js/app.js`,
+    `${forest}js/data.js`,
+    './tools/pesticide-search/',
+    './tools/pesticide-search/index.html',
+    './tools/pesticide-search/styles.css',
+    './tools/pesticide-search/js/garden-data.js',
+    './tools/pesticide-search/js/data-loader.js',
+    './tools/pesticide-search/js/app.js',
+    './tools/pesticide-search/js/multi-crop.js',
+    './tools/pesticide-search/js/multi-crop-ui.js'
+  ];
+})();
