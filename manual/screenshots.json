@@ -1,0 +1,17 @@
+{
+  "baseUrl": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 412,
+    "height": 915,
+    "deviceScaleFactor": 1
+  },
+  "pages": [
+    { "name": "00-home", "path": "/" },
+    { "name": "01-wood-cut-planner", "path": "/tools/wood-cut-planner/" },
+    { "name": "02-jan-scanner", "path": "/tools/jan-scanner/" },
+    { "name": "03-pesticide-search", "path": "/tools/pesticide-search/" },
+    { "name": "04-chainsaw-parts-search", "path": "/tools/chainsaw-parts-search/" },
+    { "name": "05-power-tool-blade-search", "path": "/tools/power-tool-blade-search/" },
+    { "name": "06-hose-length", "path": "/tools/hose-length/" }
+  ]
+}
