@@ -5,7 +5,8 @@
   "scripts": {
     "check": "node scripts/check-static-app.mjs && node scripts/test-jan-code.mjs && node scripts/test-jan-list-store.mjs && node scripts/test-wood-cut-model.mjs",
     "check:structure": "node scripts/check-static-app.mjs",
-    "test:jan": "node scripts/test-jan-code.mjs"
+    "test:jan": "node scripts/test-jan-code.mjs",
+    "screenshots": "node scripts/capture-manual-screenshots.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,592 @@
+{
+  "baseUrl": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 412,
+    "height": 915,
+    "deviceScaleFactor": 1
+  },
+  "pages": [
+    {
+      "name": "home",
+      "tool": "業務補助ツール",
+      "category": "共通",
+      "path": "/",
+      "shots": [
+        {
+          "name": "00-home",
+          "title": "ツール一覧トップ",
+          "description": "各ツールの入口とPWA案内をまとめたホーム画面です。",
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": ".pwa-panel",
+              "label": "1"
+            },
+            {
+              "selector": ".tool-grid",
+              "label": "2"
+            }
+          ],
+          "instructions": [
+            "ホーム画面を開きます。",
+            "アプリ版情報とオフライン保存の案内を確認します。",
+            "使いたいツールのカードを選びます。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wood-cut-planner",
+      "tool": "木材カット図",
+      "category": "木材加工",
+      "path": "/tools/wood-cut-planner/",
+      "shots": [
+        {
+          "name": "01-wood-add-sheet",
+          "title": "材料追加パネル",
+          "description": "登録材料または手入力で材料寸法を設定する画面です。",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#showAddSheetButton"
+            },
+            {
+              "type": "wait",
+              "ms": 250
+            }
+          ],
+          "waitFor": "#addSheetPanel:not([hidden])",
+          "selector": "#addSheetPanel",
+          "highlights": [
+            {
+              "selector": "#materialSelect",
+              "label": "1"
+            },
+            {
+              "selector": "#sheetWidthInput",
+              "label": "2"
+            },
+            {
+              "selector": "#addSheetButton",
+              "label": "3"
+            }
+          ],
+          "instructions": [
+            "材料を追加を押します。",
+            "登録材料または寸法を入力します。",
+            "この材料を追加を押して図面へ反映します。"
+          ]
+        },
+        {
+          "name": "02-wood-cut-result",
+          "title": "木材カット図と結果",
+          "description": "カット線を追加した後の2D図、カット順、切断後寸法の一覧です。",
+          "before": [
+            {
+              "type": "click",
+              "selector": "#closeAddSheetButton"
+            },
+            {
+              "type": "wait",
+              "ms": 250
+            },
+            {
+              "type": "click",
+              "selector": "#cutSvg [data-piece-id]"
+            },
+            {
+              "type": "fill",
+              "selector": "#cutOffsetInput",
+              "value": "600"
+            },
+            {
+              "type": "click",
+              "selector": "#applyCutButton"
+            },
+            {
+              "type": "wait",
+              "ms": 300
+            },
+            {
+              "type": "click",
+              "selector": "#cutSvg [data-piece-id]"
+            },
+            {
+              "type": "click",
+              "selector": "input[name='cutEdge'][value='top']"
+            },
+            {
+              "type": "fill",
+              "selector": "#cutOffsetInput",
+              "value": "300"
+            },
+            {
+              "type": "click",
+              "selector": "#applyCutButton"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#drawingViewport",
+              "label": "1"
+            },
+            {
+              "selector": "#instructionList",
+              "label": "2"
+            },
+            {
+              "selector": "#pieceTableBody",
+              "label": "3"
+            }
+          ],
+          "instructions": [
+            "図面内の領域をタップします。",
+            "基準辺と残す寸法を入力してカットを追加します。",
+            "2D図、カット順、切断後寸法を確認します。"
+          ]
+        },
+        {
+          "name": "03-wood-diagram-detail",
+          "title": "木材カット図の拡大",
+          "description": "切断線と分割後の部材寸法を拡大した画像です。",
+          "selector": "#drawingViewport",
+          "highlights": [
+            {
+              "selector": "#cutSvg",
+              "label": "1"
+            }
+          ],
+          "instructions": [
+            "図面を拡大して切断線の位置を確認します。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "jan-scanner",
+      "tool": "JANスキャンメモ",
+      "category": "JAN管理",
+      "path": "/tools/jan-scanner/",
+      "storage": {
+        "local": {
+          "jan-scan-memo-v2": {
+            "version": 2,
+            "activeListId": "list-1",
+            "nextListNumber": 3,
+            "lists": [
+              {
+                "id": "list-1",
+                "name": "売場確認",
+                "items": [
+                  {
+                    "id": "item-1",
+                    "jan": "4901087202812",
+                    "addedAt": "2026-06-28T00:00:00+09:00",
+                    "memo": "殺虫剤棚 / 在庫3"
+                  },
+                  {
+                    "id": "item-2",
+                    "jan": "4902424431117",
+                    "addedAt": "2026-06-28T00:05:00+09:00",
+                    "memo": "補充候補"
+                  }
+                ]
+              },
+              {
+                "id": "list-2",
+                "name": "木材",
+                "items": [
+                  {
+                    "id": "item-3",
+                    "jan": "4905009876549",
+                    "addedAt": "2026-06-28T00:10:00+09:00",
+                    "memo": "カット受付"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "shots": [
+        {
+          "name": "04-jan-list-full",
+          "title": "JAN一覧と保存リスト",
+          "description": "保存リスト、JANカード、スキャンボタンをまとめた画面です。",
+          "before": [
+            {
+              "type": "wait",
+              "ms": 500
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#listTabs",
+              "label": "1"
+            },
+            {
+              "selector": "#list",
+              "label": "2"
+            },
+            {
+              "selector": "#scanBtn",
+              "label": "3"
+            }
+          ],
+          "instructions": [
+            "上部のリストから保存先を切り替えます。",
+            "JANカードごとにメモを確認または入力します。",
+            "画面下のカメラでスキャンを押して新しいJANを追加します。"
+          ]
+        },
+        {
+          "name": "05-jan-card-detail",
+          "title": "JANカードの詳細",
+          "description": "バーコード表示とメモ欄を拡大した画像です。",
+          "selector": "#list article:first-child",
+          "highlights": [
+            {
+              "selector": "#list article:first-child .jan",
+              "label": "1"
+            },
+            {
+              "selector": "#list article:first-child .memo-input",
+              "label": "2"
+            }
+          ],
+          "instructions": [
+            "JAN番号を確認します。",
+            "必要なメモを入力して端末内へ保存します。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pesticide-search",
+      "tool": "農薬適用検索",
+      "category": "園芸",
+      "path": "/tools/pesticide-search/",
+      "shots": [
+        {
+          "name": "06-pesticide-result",
+          "title": "作物と病害虫からの検索結果",
+          "description": "作物と病害虫を選んで農薬候補を表示した画面です。",
+          "before": [
+            {
+              "type": "fill",
+              "selector": "#cropSearch",
+              "value": "きゅうり"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#cropChips > *:first-child"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "fill",
+              "selector": "#pestSearch",
+              "value": "アブラムシ"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#pestChips > *:first-child"
+            },
+            {
+              "type": "wait",
+              "ms": 700
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#summary",
+              "label": "1"
+            },
+            {
+              "selector": "#results",
+              "label": "2"
+            }
+          ],
+          "instructions": [
+            "作物を検索して選びます。",
+            "病害虫名を検索して選びます。",
+            "表示された農薬候補を比較します。"
+          ]
+        },
+        {
+          "name": "07-pesticide-results-detail",
+          "title": "農薬候補一覧の拡大",
+          "description": "検索結果の一覧部分を切り出した画像です。",
+          "selector": "#results",
+          "highlights": [
+            {
+              "selector": "#results",
+              "label": "1"
+            }
+          ],
+          "instructions": [
+            "商品名、登録内容、商品ページへの導線を確認します。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "chainsaw-parts-search",
+      "tool": "チェーンソー部品検索",
+      "category": "林業・工具",
+      "path": "/tools/chainsaw-parts-search/",
+      "shots": [
+        {
+          "name": "08-chainsaw-result",
+          "title": "チェーンソー適合結果",
+          "description": "メーカー、型式、仕様を選んだ後の適合結果画面です。",
+          "before": [
+            {
+              "type": "fill",
+              "selector": "#makerSearch",
+              "value": "共立"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#makerChips > *:first-child"
+            },
+            {
+              "type": "waitFor",
+              "selector": "#modelStep"
+            },
+            {
+              "type": "fill",
+              "selector": "#modelSearch",
+              "value": "CS252T"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#modelChips > *:first-child"
+            },
+            {
+              "type": "waitFor",
+              "selector": "#specStep"
+            },
+            {
+              "type": "click",
+              "selector": "#specChips > *:first-child"
+            },
+            {
+              "type": "wait",
+              "ms": 700
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#summary",
+              "label": "1"
+            },
+            {
+              "selector": "#results",
+              "label": "2"
+            }
+          ],
+          "instructions": [
+            "本体メーカーを選びます。",
+            "型式を選び、必要なら仕様を選びます。",
+            "適合チェーンとガイドバーを確認します。"
+          ]
+        },
+        {
+          "name": "09-chainsaw-results-detail",
+          "title": "チェーンソー結果一覧の拡大",
+          "description": "適合部品の一覧部分です。",
+          "selector": "#results",
+          "highlights": [
+            {
+              "selector": "#results",
+              "label": "1"
+            }
+          ],
+          "instructions": [
+            "品番、仕様、商品導線を確認します。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "power-tool-blade-search",
+      "tool": "替刃・互換検索",
+      "category": "電動工具",
+      "path": "/tools/power-tool-blade-search/",
+      "shots": [
+        {
+          "name": "10-power-tool-result",
+          "title": "替刃検索の結果",
+          "description": "メーカーと型番から対応替刃を表示した画面です。",
+          "before": [
+            {
+              "type": "fill",
+              "selector": "#makerSearch",
+              "value": "マキタ"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#makerChips > *:first-child"
+            },
+            {
+              "type": "waitFor",
+              "selector": "#modelStep"
+            },
+            {
+              "type": "fill",
+              "selector": "#modelSearch",
+              "value": "MUH2300"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            },
+            {
+              "type": "click",
+              "selector": "#modelChips > *:first-child"
+            },
+            {
+              "type": "wait",
+              "ms": 700
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#summary",
+              "label": "1"
+            },
+            {
+              "selector": "#results",
+              "label": "2"
+            }
+          ],
+          "instructions": [
+            "メーカーを選びます。",
+            "本体型番を選びます。",
+            "対応替刃と商品導線を確認します。"
+          ]
+        },
+        {
+          "name": "11-power-tool-results-detail",
+          "title": "替刃候補一覧の拡大",
+          "description": "対応替刃の一覧部分です。",
+          "selector": "#results",
+          "highlights": [
+            {
+              "selector": "#results",
+              "label": "1"
+            }
+          ],
+          "instructions": [
+            "替刃型番と仕様を確認します。"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hose-length",
+      "tool": "ホース長さ計算",
+      "category": "計算",
+      "path": "/tools/hose-length/",
+      "shots": [
+        {
+          "name": "12-hose-result",
+          "title": "ホース長さ計算の入力例",
+          "description": "重量を入力し、推定ホース長を表示した画面です。",
+          "before": [
+            {
+              "type": "fill",
+              "selector": "#totalHundreds",
+              "value": "85"
+            },
+            {
+              "type": "fill",
+              "selector": "#drumTens",
+              "value": "320"
+            },
+            {
+              "type": "fill",
+              "selector": "#weightPerMeter",
+              "value": "210"
+            },
+            {
+              "type": "wait",
+              "ms": 400
+            }
+          ],
+          "fullPage": true,
+          "highlights": [
+            {
+              "selector": "#totalHundreds",
+              "label": "1"
+            },
+            {
+              "selector": "#drumTens",
+              "label": "2"
+            },
+            {
+              "selector": "#weightPerMeter",
+              "label": "3"
+            },
+            {
+              "selector": ".result-panel",
+              "label": "4"
+            }
+          ],
+          "instructions": [
+            "全重量を入力します。",
+            "ドラム重量を入力します。",
+            "1m当たりの重量を入力し、推定長さを確認します。"
+          ]
+        },
+        {
+          "name": "13-hose-result-detail",
+          "title": "推定ホース長の拡大",
+          "description": "計算結果の表示部分です。",
+          "selector": ".result-panel",
+          "highlights": [
+            {
+              "selector": "#lengthResult",
+              "label": "1"
+            }
+          ],
+          "instructions": [
+            "推定ホース長と計算条件の要約を確認します。"
+          ]
+        }
+      ]
+    }
+  ]
+}
