@@ -1,6 +1,12 @@
 (() => {
   'use strict';
-  document.querySelector('.project-bar')?.remove();
+  const projectBar = document.querySelector('.project-bar');
+  const newProject = document.getElementById('newProjectButton');
+  if (newProject) {
+    newProject.hidden = true;
+    document.body.append(newProject);
+  }
+  projectBar?.remove();
   document.getElementById('saveState')?.remove();
   document.getElementById('printButton')?.remove();
   document.getElementById('resetSheetButton')?.remove();
