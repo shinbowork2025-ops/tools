@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>発注数計算</title>
+  <meta name="theme-color" content="#1f5f95">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <a class="back-link" href="../../index.html">← ツール一覧へ戻る</a>
+    <h1>発注数計算</h1>
+    <p class="subtitle">現在庫・前年販売数・今年販売数から、リードタイム3週間前提の推奨発注数を計算します。</p>
+  </header>
+
+  <section class="summary-bar" aria-live="polite" aria-label="現在の計算結果">
+    <span class="summary-label">推奨発注数</span>
+    <strong><span id="compactOrderQty">―</span><span class="summary-unit">個</span></strong>
+    <span id="compactStatus" class="summary-status">入力待ち</span>
+  </section>
+
+  <section class="grid" aria-label="発注数計算">
+    <div class="panel input-panel">
+      <label for="currentStock">現在庫</label>
+      <div class="input-wrap">
+        <input id="currentStock" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="next" placeholder="例：6">
+        <span class="suffix">個</span>
+      </div>
+      <p class="hint">今ある在庫数</p>
+    </div>
+
+    <div class="panel input-panel">
+      <label for="lastYearSales">去年30日販売数</label>
+      <div class="input-wrap">
+        <input id="lastYearSales" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="next" placeholder="例：15">
+        <span class="suffix">個</span>
+      </div>
+      <p class="hint">当日から1か月間の前年実績</p>
+    </div>
+
+    <div class="panel input-panel">
+      <label for="currentYearSales">今年30日販売数</label>
+      <div class="input-wrap optional">
+        <input id="currentYearSales" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" placeholder="任意">
+        <span class="suffix">個</span>
+      </div>
+      <p class="hint">未入力なら補正係数1.00</p>
+    </div>
+
+    <div class="panel result-panel">
+      <p class="panel-title">推奨発注数</p>
+      <p class="result-value"><span id="orderQty">―</span><span class="result-unit">個</span></p>
+      <p class="status" id="statusText">入力待ち</p>
+      <dl class="details">
+        <div><dt>補正係数</dt><dd id="factorValue">―</dd></div>
+        <div><dt>28日需要</dt><dd id="demandValue">―</dd></div>
+        <div><dt>安全在庫</dt><dd id="safetyValue">―</dd></div>
+        <div><dt>目標在庫</dt><dd id="targetValue">―</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <footer>
+    <p class="message" id="message" role="alert"></p>
+    <button id="resetButton" type="button">リセット</button>
+  </footer>
+</main>
+<script src="js/app.js" defer></script>
+<script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>
