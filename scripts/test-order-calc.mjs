@@ -141,4 +141,12 @@ assert.equal(errors.motherError, 2);
 assert.ok(Math.abs(errors.toolError - 2.5) < 1e-9, '新方式誤差 |22.5-20|');
 assert.equal(OrderCalc.recordErrors({ inputs: {}, motherOrderQty: 0, actualSalesNext4w: null }), null);
 
+// 新商品レコード(inputsは合成ゼロ)は実績が入っても精度集計に含めない。
+assert.equal(OrderCalc.recordErrors({
+  classification: 'newItem',
+  inputs: { lastYearPast6w: 0, lastYearNext4w: 0, thisYearPast6w: 0, oosDaysPast6w: 0 },
+  motherOrderQty: 10,
+  actualSalesNext4w: 20
+}), null, '新商品はFVAスコアリング対象外');
+
 console.log('発注数計算v2: 検算ケースと境界条件の検査に成功');

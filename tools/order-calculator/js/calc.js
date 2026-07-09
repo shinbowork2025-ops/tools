@@ -295,8 +295,11 @@
   /**
    * ミニFVA精度比較(8.3)。実績が入ったレコードから3系統の絶対誤差を計算する。
    * 新方式のDpは記録時の入力から4週基準で再計算する(保護期間設定に依存しない)。
+   * 新商品レコードは前年ベースラインが存在しない(inputsは合成ゼロ)ため、
+   * ナイーブ誤差が「予測0」として集計を歪めないようスコアリングから除外する。
    */
   function recordErrors(record) {
+    if (record.classification === 'newItem') return null;
     const actual = record.actualSalesNext4w;
     if (!Number.isFinite(actual)) return null;
 
