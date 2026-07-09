@@ -231,6 +231,11 @@
           <label for="setWarnMax">前年比 警告上限</label>
           <input id="setWarnMax" type="text" inputmode="decimal" value="2.5">
         </div>
+        <div class="field">
+          <label for="setShrinkK">前年比の縮小推定k</label>
+          <input id="setShrinkK" type="text" inputmode="numeric" value="5">
+          <p class="hint">販売数が小さいときrを1へ寄せる疑似カウント。0で無効</p>
+        </div>
       </div>
       <div class="toolbar" style="margin-top:10px">
         <button id="saveSettingsButton" type="button" class="action primary">設定を保存</button>

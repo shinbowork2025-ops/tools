@@ -95,6 +95,7 @@
     $('setCvHigh').value = settings.variabilityPresets.high;
     $('setWarnMin').value = settings.shrinkageWarnRange.min;
     $('setWarnMax').value = settings.shrinkageWarnRange.max;
+    $('setShrinkK').value = settings.ratioShrinkK ?? 5;
   }
 
   function collectSettingsForm() {
@@ -116,12 +117,14 @@
     const warnMin = parseNumber($('setWarnMin').value, { ...decimal, label: '前年比 警告下限', required: true, min: 0.01, max: 100 });
     const warnMax = parseNumber($('setWarnMax').value, { ...decimal, label: '前年比 警告上限', required: true, min: 0.01, max: 100 });
     if (warnMax <= warnMin) throw new Error('前年比の警告上限は下限より大きくしてください');
+    const shrinkK = parseNumber($('setShrinkK').value, { label: '縮小推定k', required: true, min: 0, max: 100 });
 
     return {
       grossMarginPct: margin,
       overageCostPresets: overage,
       variabilityPresets: variability,
       shrinkageWarnRange: { min: warnMin, max: warnMax },
+      ratioShrinkK: shrinkK,
       leadTimeDays: leadTime,
       reviewPeriodDays: review
     };
@@ -253,6 +256,7 @@
       ['補正後6週販売', fmt(detail.correctedSales6w)],
       ['週販', fmt(detail.weeklySales)],
       ['補正係数r', fmt(detail.ratio)],
+      ['縮小前r', detail.rawRatio !== undefined && Math.abs(detail.rawRatio - detail.ratio) > 0.005 ? fmt(detail.rawRatio) : '―'],
       ['目標分位点CR', fmt(detail.cr)],
       ['安全係数z', fmt(detail.z)],
       ['保護期間需要', fmt(detail.protectionDemand)],
@@ -382,6 +386,10 @@
         inputs,
         motherOrderQty: isNewItem ? lastContext.motherOrderQty : lastContext.inputs.motherOrderQty,
         toolRecommendedQty: Number.isFinite(lastResult.quantity) ? lastResult.quantity : null,
+        // 記録時に実際に出した4週予測。後で設定が変わっても採点基準がずれないよう保存する。
+        toolForecastNext4w: !isNewItem && Number.isFinite(lastResult.detail?.ratio)
+          ? lastContext.inputs.lastYearNext4w * lastResult.detail.ratio
+          : null,
         myFinalQty,
         classification: lastResult.classification,
         reasons: lastResult.reasons || [],
@@ -574,14 +582,14 @@
       // 粗利率(名目値)はCSVへ含めない。
       const header = ['id', 'week', 'jan', 'name', 'lastYearPast6w', 'lastYearNext4w', 'thisYearPast6w',
         'stockOnHand', 'onOrder', 'oosDaysPast6w', 'saleFlag', 'motherOrderQty', 'toolRecommendedQty',
-        'myFinalQty', 'classification', 'reasons', 'actualSalesNext4w', 'note'];
+        'toolForecastNext4w', 'myFinalQty', 'classification', 'reasons', 'actualSalesNext4w', 'note'];
       const rows = records.map(record => [
         record.id, record.week, record.jan, names.get(record.jan) || '',
         record.inputs.lastYearPast6w, record.inputs.lastYearNext4w, record.inputs.thisYearPast6w,
         record.inputs.stockOnHand, record.inputs.onOrder, record.inputs.oosDaysPast6w,
         record.inputs.saleFlag ? 1 : 0, record.motherOrderQty, record.toolRecommendedQty ?? '',
-        record.myFinalQty, record.classification, (record.reasons || []).join(';'),
-        record.actualSalesNext4w ?? '', record.note || ''
+        record.toolForecastNext4w ?? '', record.myFinalQty, record.classification,
+        (record.reasons || []).join(';'), record.actualSalesNext4w ?? '', record.note || ''
       ].map(csvEscape).join(','));
       const csv = `${'\ufeff'}${header.join(',')}\n${rows.join('\n')}\n`;
       downloadFile(timestampName('order-calculator-records', 'csv'), csv, 'text/csv');

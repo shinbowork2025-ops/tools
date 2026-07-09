@@ -21,6 +21,9 @@
     overageCostPresets: Object.freeze({ low: 5, mid: 15, high: 40 }),
     variabilityPresets: Object.freeze({ low: 0.3, mid: 0.6, high: 1.0 }),
     shrinkageWarnRange: Object.freeze({ min: 0.4, max: 2.5 }),
+    // 前年比rを1へ縮小する疑似カウント。小さいカウント同士の割り算による
+    // 過剰反応を抑える(0で無効)。販売数が大きい商品ほど縮小の影響は消える。
+    ratioShrinkK: 5,
     leadTimeDays: 21,
     reviewPeriodDays: 7
   });
@@ -119,9 +122,12 @@
    * 検算ケース(scripts/test-order-calc.mjsで自動検査):
    * 1) 前年6週20 / 今年6週30(欠品0日) / 前年今後4週15 / 在庫5 / 発注残0 /
    *    名目粗利30%・standard(c=5) / ばらつき中(0.6)
-   *    → r=1.5, Dp=22.5, CR≈0.857, z≈1.07, μw≈5.63, σw≈3.38, SS≈7.20,
+   *    - 縮小推定なし(k=0、仕様書9.4の条件):
+   *      r=1.5, Dp=22.5, CR≈0.857, z≈1.07, μw≈5.63, σw≈3.38, SS≈7.20,
    *      Q=24.70 → 入数1で切り上げ25
-   * 2) 同条件で欠品14日 → A=28(0.3D≤A<0.7D), S6c=45, r=2.25
+   *    - 既定(k=5): r=(30+5)/(20+5)=1.4, Dp=21, μw=5.25, σw=3.15,
+   *      SS≈6.73, Q=22.73 → 23
+   * 2) 同条件で欠品14日 → A=28(0.3D≤A<0.7D), S6c=45, r生=2.25
    *    → 在庫有り日数の信頼性低下により check
    *      (仕様書9.4の「閾値超過」という説明は誤り。r=2.25は警告範囲0.4〜2.5の内側)
    * 3) 週販0.4・在庫が最低陳列数以上 → 発注0・lowRotation
@@ -177,7 +183,14 @@
     const weeklySales = correctedSales6w / 6;
     detail.weeklySales = weeklySales;
 
-    if (weeklySales < LOW_ROTATION_WEEKLY) {
+    // 判定には前年も合わせた12週平均を使い、閾値付近での分類の行き来を抑える。
+    // 前年実績がない商品は今年の6週平均のみで判定する。
+    const weeklyForClass = inputs.lastYearPast6w > 0
+      ? (correctedSales6w + inputs.lastYearPast6w) / 12
+      : weeklySales;
+    detail.weeklyForClass = weeklyForClass;
+
+    if (weeklyForClass < LOW_ROTATION_WEEKLY) {
       const baseStock = Math.max(item.minDisplay || 0, item.orderUnit || 1);
       const available = inputs.stockOnHand + onOrder;
       let quantity = 0;
@@ -211,8 +224,14 @@
       }, inputs);
     }
 
-    const ratio = correctedSales6w / inputs.lastYearPast6w;
+    // 前年比は疑似カウントkで1へ縮小する(小カウント同士の割り算の過剰反応を抑制)。
+    // 警告範囲の判定も、実際に需要予測へ使う縮小後のrに対して行う。
+    const shrinkK = Math.max(0, Number(settings.ratioShrinkK) || 0);
+    const rawRatio = correctedSales6w / inputs.lastYearPast6w;
+    const ratio = (correctedSales6w + shrinkK) / (inputs.lastYearPast6w + shrinkK);
+    detail.rawRatio = rawRatio;
     detail.ratio = ratio;
+    detail.shrinkK = shrinkK;
     const warnRange = settings.shrinkageWarnRange;
     if (ratio < warnRange.min || ratio > warnRange.max) {
       reasons.push(`前年比${ratio.toFixed(2)}が警告範囲(${warnRange.min}〜${warnRange.max})の外。参考値`);
@@ -228,9 +247,11 @@
     detail.protectionDemand = protectionDemand;
 
     // --- 7.3〜7.4 安全在庫 ---
+    // σにはポアソン下限√μを敷く。カウント需要では σ ≥ √μ が物理的下限で、
+    // CV×μだけだと週平均が小さい商品の安全在庫を過小評価する。
     const weeklyMean = dailyDemand * 7;
     const cv = settings.variabilityPresets[item.variability] ?? settings.variabilityPresets.mid;
-    const weeklySigma = cv * weeklyMean;
+    const weeklySigma = Math.max(cv * weeklyMean, Math.sqrt(Math.max(weeklyMean, 0)));
     let safetyStock = z * weeklySigma * Math.sqrt(protectionDays / 7);
     if (z <= 0) {
       safetyStock = 0;
@@ -244,18 +265,21 @@
     const rawQuantity = protectionDemand + safetyStock - inputs.stockOnHand - onOrder;
     detail.rawQuantity = rawQuantity;
 
-    let quantity = 0;
+    let quantity = rawQuantity > 0 ? Math.max(0, roundToUnit(rawQuantity, item.orderUnit, cr)) : 0;
+
+    // 需要上は発注不要でも、売場の最低陳列数を割り込むなら不足分を補充する。
+    const unit = Math.max(1, item.orderUnit || 1);
+    const displayShortfall = (item.minDisplay || 0) - inputs.stockOnHand - onOrder;
+    if (displayShortfall > 0 && quantity < displayShortfall) {
+      quantity = unit * Math.ceil(displayShortfall / unit);
+      reasons.push('最低陳列数を確保');
+    }
+
     let classification = 'auto';
-    if (rawQuantity <= 0) {
+    if (quantity <= 0) {
+      quantity = 0;
       classification = 'stop';
-      reasons.push('在庫十分');
-    } else {
-      quantity = roundToUnit(rawQuantity, item.orderUnit, cr);
-      if (quantity <= 0) {
-        quantity = 0;
-        classification = 'stop';
-        reasons.push('切り捨てにより発注なし');
-      }
+      reasons.push(rawQuantity <= 0 ? '在庫十分' : '切り捨てにより発注なし');
     }
 
     if (forceCheck) classification = 'check';
@@ -294,7 +318,9 @@
 
   /**
    * ミニFVA精度比較(8.3)。実績が入ったレコードから3系統の絶対誤差を計算する。
-   * 新方式のDpは記録時の入力から4週基準で再計算する(保護期間設定に依存しない)。
+   * 新方式の予測は記録時に保存したtoolForecastNext4wを優先する(設定のkが後から
+   * 変わっても「記録時に実際に出した予測」で採点するため)。保存がない旧レコードは
+   * 記録時の入力から4週基準で再計算する。
    * 新商品レコードは前年ベースラインが存在しない(inputsは合成ゼロ)ため、
    * ナイーブ誤差が「予測0」として集計を歪めないようスコアリングから除外する。
    */
@@ -307,16 +333,16 @@
     const naiveError = Math.abs(inputs.lastYearNext4w - actual);
     const motherError = Math.abs(record.motherOrderQty - actual);
 
-    let toolError = null;
-    if (inputs.lastYearPast6w > 0) {
+    let forecast = Number.isFinite(record.toolForecastNext4w) ? record.toolForecastNext4w : null;
+    if (forecast === null && inputs.lastYearPast6w > 0) {
       const oosDays = clampNumber(inputs.oosDaysPast6w, 0, HISTORY_DAYS);
       const stockedDays = HISTORY_DAYS - oosDays;
       const corrected = (oosDays > 0 && stockedDays >= 0.3 * HISTORY_DAYS)
         ? inputs.thisYearPast6w / stockedDays * HISTORY_DAYS
         : inputs.thisYearPast6w;
-      const forecast = inputs.lastYearNext4w * (corrected / inputs.lastYearPast6w);
-      toolError = Math.abs(forecast - actual);
+      forecast = inputs.lastYearNext4w * (corrected / inputs.lastYearPast6w);
     }
+    const toolError = forecast === null ? null : Math.abs(forecast - actual);
     return { naiveError, motherError, toolError };
   }
 
