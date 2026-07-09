@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>発注数計算</title>
+  <title>発注数計算 v2</title>
   <meta name="theme-color" content="#1f5f95">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,62 +17,248 @@
 <main>
   <header>
     <a class="back-link" href="../../index.html">← ツール一覧へ戻る</a>
-    <h1>発注数計算</h1>
-    <p class="subtitle">現在庫・前年販売数・今年販売数から、リードタイム3週間前提の推奨発注数を計算します。</p>
+    <h1>発注数計算 v2(試作版)</h1>
+    <p class="subtitle">定期発注方式(R,S)ベースの推奨発注数を手入力で計算し、判断記録(ミニFVA)を端末内に蓄積します。</p>
   </header>
 
-  <section class="summary-bar" aria-live="polite" aria-label="現在の計算結果">
-    <span class="summary-label">推奨発注数</span>
-    <strong><span id="compactOrderQty">―</span><span class="summary-unit">個</span></strong>
-    <span id="compactStatus" class="summary-status">入力待ち</span>
+  <p class="notice">所属企業の公式ツールではありません。実際の発注は社内システムと自身の判断で行ってください。粗利率は名目値(既定30%)であり実際の値ではありません。データはすべてこの端末内にのみ保存されます。</p>
+
+  <nav class="tabs" role="tablist" aria-label="画面切替">
+    <button type="button" role="tab" id="tabCalc" aria-selected="true" aria-controls="calcView">計算</button>
+    <button type="button" role="tab" id="tabRecords" aria-selected="false" aria-controls="recordsView">記録一覧</button>
+    <button type="button" role="tab" id="tabSettings" aria-selected="false" aria-controls="settingsView">設定</button>
+  </nav>
+
+  <!-- ============ 計算画面 ============ -->
+  <section id="calcView" class="view is-active" role="tabpanel" aria-labelledby="tabCalc">
+    <div class="panel">
+      <h2>商品</h2>
+      <div class="jan-row">
+        <input id="janInput" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="go" placeholder="JANコード(8桁/13桁)">
+        <button id="scanButton" type="button" class="action">カメラで読取</button>
+      </div>
+      <p class="status-line" id="janStatus">JANを入力または読み取ると、保存済みの商品設定を自動で読み込みます。</p>
+      <div class="field-grid" style="margin-top:8px">
+        <div class="field wide">
+          <label for="itemName">商品名(任意)</label>
+          <input id="itemName" type="text" autocomplete="off" placeholder="メモ用">
+        </div>
+        <div class="field">
+          <label for="riskClass">リスク区分</label>
+          <select id="riskClass">
+            <option value="standard">定番(standard)</option>
+            <option value="seasonal_mid">季節・中盤(seasonal_mid)</option>
+            <option value="seasonal_end">季節・終盤(seasonal_end)</option>
+          </select>
+          <p class="hint">過剰コスト率プリセット 低/中/高 に対応</p>
+        </div>
+        <div class="field">
+          <label for="variability">ばらつき</label>
+          <select id="variability">
+            <option value="low">小</option>
+            <option value="mid" selected>中</option>
+            <option value="high">大</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="orderUnit">入数(発注単位)</label>
+          <input id="orderUnit" type="text" inputmode="numeric" value="1">
+        </div>
+        <div class="field">
+          <label for="minDisplay">最低陳列数</label>
+          <input id="minDisplay" type="text" inputmode="numeric" value="0">
+        </div>
+        <div class="field wide check-row">
+          <input id="trackedFlag" type="checkbox" checked>
+          <label for="trackedFlag">この商品を追跡リストに入れる</label>
+        </div>
+      </div>
+    </div>
+
+    <label class="mode-toggle">
+      <input id="newItemMode" type="checkbox">
+      新商品モード(前年実績の代わりに類似商品の販売数から初回発注数を出す)
+    </label>
+
+    <div class="panel" id="normalInputs">
+      <h2>販売・在庫の入力</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="lastYearPast6w">前年 過去6週販売数</label>
+          <input id="lastYearPast6w" type="text" inputmode="numeric" placeholder="例：20">
+        </div>
+        <div class="field">
+          <label for="lastYearNext4w">前年 今後4週販売数</label>
+          <input id="lastYearNext4w" type="text" inputmode="numeric" placeholder="例：15">
+        </div>
+        <div class="field">
+          <label for="thisYearPast6w">今年 過去6週販売数</label>
+          <input id="thisYearPast6w" type="text" inputmode="numeric" placeholder="例：30">
+        </div>
+        <div class="field">
+          <label for="stockOnHand">現在庫</label>
+          <input id="stockOnHand" type="text" inputmode="numeric" placeholder="例：5">
+        </div>
+        <div class="field">
+          <label for="onOrder">発注残(任意)</label>
+          <input id="onOrder" class="optional" type="text" inputmode="numeric" placeholder="不明なら空欄">
+          <p class="hint">空欄は0扱いで「発注残未考慮」と表示</p>
+        </div>
+        <div class="field">
+          <label for="oosDays">直近6週の欠品日数</label>
+          <input id="oosDays" type="text" inputmode="numeric" value="0">
+          <p class="hint">概算でよい。不明なら0</p>
+        </div>
+        <div class="field wide check-row">
+          <input id="saleFlag" type="checkbox">
+          <label for="saleFlag">直近に特売があった</label>
+        </div>
+        <div class="field">
+          <label for="motherOrderQty">マザー発注数(記録用)</label>
+          <input id="motherOrderQty" type="text" inputmode="numeric" placeholder="例：20">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="newItemInputs" hidden>
+      <h2>類似商品の販売数</h2>
+      <div class="field">
+        <label for="similarSales">類似商品の28日販売数(最大10件、カンマか空白区切り)</label>
+        <input id="similarSales" type="text" inputmode="numeric" autocomplete="off" placeholder="例：4, 8, 10, 12, 20">
+        <p class="hint">5件未満は「サンプル不足・参考値」と表示します</p>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label for="motherOrderQtyNew">マザー発注数(記録用)</label>
+        <input id="motherOrderQtyNew" type="text" inputmode="numeric" placeholder="任意">
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="calcButton" type="button" class="action primary">計算する</button>
+      <button id="clearButton" type="button" class="action">入力をクリア</button>
+    </div>
+    <p class="message" id="calcMessage" role="alert"></p>
+
+    <div class="panel result-panel" id="resultPanel" hidden>
+      <div class="result-head">
+        <p class="result-value"><span id="resultQty">―</span><span class="result-unit">個</span></p>
+        <span class="badge" id="resultBadge">―</span>
+        <span class="badge" id="motherDiffBadge" hidden></span>
+      </div>
+      <ul class="reasons" id="resultReasons"></ul>
+      <dl class="details" id="resultDetails"></dl>
+      <p class="footnote">CR・zの粗利率は名目値(実際の粗利率ではない)。計算はたたき台であり、最終判断は自身で行ってください。</p>
+      <div class="record-row">
+        <div class="field">
+          <label for="myFinalQty">自分の最終発注数</label>
+          <input id="myFinalQty" type="text" inputmode="numeric" placeholder="実際に発注する数">
+        </div>
+        <button id="recordButton" type="button" class="action primary">この判断を記録</button>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label for="recordNote">メモ(任意)</label>
+        <input id="recordNote" type="text" autocomplete="off" placeholder="売場変更など">
+      </div>
+      <p class="message" id="recordMessage" role="alert"></p>
+    </div>
   </section>
 
-  <section class="grid" aria-label="発注数計算">
-    <div class="panel input-panel">
-      <label for="currentStock">現在庫</label>
-      <div class="input-wrap">
-        <input id="currentStock" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="next" placeholder="例：6">
-        <span class="suffix">個</span>
+  <!-- ============ 記録一覧画面 ============ -->
+  <section id="recordsView" class="view" role="tabpanel" aria-labelledby="tabRecords" hidden>
+    <div class="panel">
+      <h2>精度比較(実績が入った記録のみ)</h2>
+      <dl class="stats" id="accuracyStats"></dl>
+      <p class="footnote">マザー発注数は予測値ではないため代理指標としての比較です。新商品の記録は前年ベースラインがないため集計に含めません。件数が少ないうちは統計的に不安定です。本格的な集計はエクスポートしたデータで行ってください。</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <button id="filterAll" type="button" class="action primary">全て</button>
+        <button id="filterPending" type="button" class="action">実績入力待ち</button>
       </div>
-      <p class="hint">今ある在庫数</p>
+      <p class="status-line" id="recordsStatus"></p>
     </div>
-
-    <div class="panel input-panel">
-      <label for="lastYearSales">去年30日販売数</label>
-      <div class="input-wrap">
-        <input id="lastYearSales" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="next" placeholder="例：15">
-        <span class="suffix">個</span>
-      </div>
-      <p class="hint">当日から1か月間の前年実績</p>
-    </div>
-
-    <div class="panel input-panel">
-      <label for="currentYearSales">今年30日販売数</label>
-      <div class="input-wrap optional">
-        <input id="currentYearSales" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="done" placeholder="任意">
-        <span class="suffix">個</span>
-      </div>
-      <p class="hint">未入力なら補正係数1.00</p>
-    </div>
-
-    <div class="panel result-panel">
-      <p class="panel-title">推奨発注数</p>
-      <p class="result-value"><span id="orderQty">―</span><span class="result-unit">個</span></p>
-      <p class="status" id="statusText">入力待ち</p>
-      <dl class="details">
-        <div><dt>補正係数</dt><dd id="factorValue">―</dd></div>
-        <div><dt>28日需要</dt><dd id="demandValue">―</dd></div>
-        <div><dt>安全在庫</dt><dd id="safetyValue">―</dd></div>
-        <div><dt>目標在庫</dt><dd id="targetValue">―</dd></div>
-      </dl>
-    </div>
+    <div class="record-list" id="recordList"></div>
   </section>
 
-  <footer>
-    <p class="message" id="message" role="alert"></p>
-    <button id="resetButton" type="button">リセット</button>
-  </footer>
+  <!-- ============ 設定画面 ============ -->
+  <section id="settingsView" class="view" role="tabpanel" aria-labelledby="tabSettings" hidden>
+    <div class="panel">
+      <h2>計算の設定</h2>
+      <p class="notice">粗利率は名目値です。実際の部門別粗利率(社外秘)は入力しないでください。各プリセットはたたき台であり、設定画面から調整できます。</p>
+      <div class="field-grid" style="margin-top:8px">
+        <div class="field">
+          <label for="setMargin">名目粗利率(%)</label>
+          <input id="setMargin" type="text" inputmode="decimal" value="30">
+          <p class="hint">既定30。実値を入力しない前提の項目</p>
+        </div>
+        <div class="field">
+          <label for="setLeadTime">リードタイム(日)</label>
+          <input id="setLeadTime" type="text" inputmode="numeric" value="21">
+        </div>
+        <div class="field">
+          <label for="setReview">発注間隔(日)</label>
+          <input id="setReview" type="text" inputmode="numeric" value="7">
+        </div>
+        <div class="field">
+          <label for="setOverageLow">過剰コスト率:低(%) — 定番</label>
+          <input id="setOverageLow" type="text" inputmode="decimal" value="5">
+        </div>
+        <div class="field">
+          <label for="setOverageMid">過剰コスト率:中(%) — 季節中盤</label>
+          <input id="setOverageMid" type="text" inputmode="decimal" value="15">
+        </div>
+        <div class="field">
+          <label for="setOverageHigh">過剰コスト率:高(%) — 季節終盤</label>
+          <input id="setOverageHigh" type="text" inputmode="decimal" value="40">
+        </div>
+        <div class="field">
+          <label for="setCvLow">変動係数:小</label>
+          <input id="setCvLow" type="text" inputmode="decimal" value="0.3">
+        </div>
+        <div class="field">
+          <label for="setCvMid">変動係数:中</label>
+          <input id="setCvMid" type="text" inputmode="decimal" value="0.6">
+        </div>
+        <div class="field">
+          <label for="setCvHigh">変動係数:大</label>
+          <input id="setCvHigh" type="text" inputmode="decimal" value="1.0">
+        </div>
+        <div class="field">
+          <label for="setWarnMin">前年比 警告下限</label>
+          <input id="setWarnMin" type="text" inputmode="decimal" value="0.4">
+        </div>
+        <div class="field">
+          <label for="setWarnMax">前年比 警告上限</label>
+          <input id="setWarnMax" type="text" inputmode="decimal" value="2.5">
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <button id="saveSettingsButton" type="button" class="action primary">設定を保存</button>
+        <button id="resetSettingsButton" type="button" class="action">既定値に戻す</button>
+      </div>
+      <p class="message" id="settingsMessage" role="alert"></p>
+    </div>
+
+    <div class="panel">
+      <h2>データ管理</h2>
+      <p class="notice">エクスポートには販売実績等の業務データが含まれます。取り扱いに注意してください。</p>
+      <div class="toolbar" style="margin-top:8px">
+        <button id="exportJsonButton" type="button" class="action">JSON一括エクスポート</button>
+        <button id="exportCsvButton" type="button" class="action">記録CSVエクスポート</button>
+        <button id="importButton" type="button" class="action">JSONインポート</button>
+        <input id="importFile" type="file" accept="application/json" hidden>
+        <button id="clearAllButton" type="button" class="action danger">全データ削除</button>
+      </div>
+      <p class="message" id="dataMessage" role="alert"></p>
+    </div>
+  </section>
 </main>
+<script src="../../shared/js/jan-code.js" defer></script>
+<script src="../jan-scanner/js/scan-consensus.js" defer></script>
+<script src="js/calc.js" defer></script>
+<script src="js/db.js" defer></script>
+<script src="js/jan-camera-ui.js" defer></script>
+<script src="js/jan-scanner.js" defer></script>
 <script src="js/app.js" defer></script>
 <script src="../../shared/js/pwa-client.js" defer></script>
 </body>

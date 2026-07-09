@@ -26,8 +26,8 @@ const changelogPath = join(root, 'CHANGELOG.md');
 
 const serviceWorker = await readFile(serviceWorkerPath, 'utf8');
 const updatedServiceWorker = serviceWorker.replace(
-  /const APP_VERSION = '[^']+';/,
-  `const APP_VERSION = '${version}';`
+  /const APP_VERSION\s*=\s*'[^']+';/,
+  match => match.replace(/'[^']+'/, `'${version}'`)
 );
 if (updatedServiceWorker === serviceWorker) {
   throw new Error('service-worker.jsのAPP_VERSIONを更新できませんでした。');
