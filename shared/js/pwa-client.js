@@ -18,6 +18,13 @@
     version: document.getElementById('pwaVersion')
   };
 
+  const TERMINAL_MESSAGE_TYPES = new Set([
+    'TOOL_CACHE_STATUS',
+    'TOOL_CACHE_COMPLETE',
+    'OPTIONAL_CACHE_STATUS',
+    'OPTIONAL_CACHE_COMPLETE'
+  ]);
+
   let installPrompt = null;
   let registration = null;
   let reloadingForUpdate = false;
@@ -47,9 +54,11 @@
   function prepareStandalonePanel() {
     if (!isStandalone || !elements.panel) return;
     elements.panel.classList.add('is-standalone');
-    if (elements.offlineButton) elements.offlineButton.textContent = '農薬データを追加ダウンロード';
+    if (elements.offlineButton) elements.offlineButton.textContent = '農薬全件データを追加保存';
     if (elements.actions) elements.actions.hidden = true;
-    if (elements.version?.parentElement?.firstChild) elements.version.parentElement.firstChild.textContent = 'バージョン情報：';
+    if (elements.version?.parentElement?.firstChild) {
+      elements.version.parentElement.firstChild.textContent = 'バージョン情報：';
+    }
     elements.panel.parentElement?.append(elements.panel);
   }
 
@@ -81,7 +90,7 @@
     notice.innerHTML = `
       <div class="pwa-update-message">
         <strong>新版${version ? ` ${version}` : ''}を利用できます</strong>
-        <span>更新すると画面を再読み込みします。</span>
+        <span>更新後、オフラインで使うツールは一覧から再保存してください。</span>
       </div>
       <button type="button" class="pwa-update-button">更新する</button>
       <button type="button" class="pwa-update-close" aria-label="後で更新する">×</button>
@@ -140,7 +149,7 @@
     });
   }
 
-  function sendWorkerMessage(type, onMessage) {
+  function sendWorkerMessage(message, onMessage) {
     return navigator.serviceWorker.ready.then(reg => new Promise((resolve, reject) => {
       const worker = reg.active || navigator.serviceWorker.controller;
       if (!worker) {
@@ -150,29 +159,56 @@
 
       const channel = new MessageChannel();
       channel.port1.onmessage = event => {
-        const message = event.data || {};
-        onMessage?.(message);
-        if (message.type === 'ERROR') reject(new Error(message.message || '処理に失敗しました。'));
-        if (message.type === 'CACHE_COMPLETE' || message.type === 'OPTIONAL_CACHE_STATUS') resolve(message);
+        const response = event.data || {};
+        onMessage?.(response);
+        if (response.type === 'ERROR') {
+          reject(new Error(response.message || '処理に失敗しました。'));
+          return;
+        }
+        if (TERMINAL_MESSAGE_TYPES.has(response.type)) resolve(response);
       };
-      worker.postMessage({ type }, [channel.port2]);
+      worker.postMessage(message, [channel.port2]);
     }));
   }
 
-  async function refreshOfflineStatus() {
+  async function persistStorage() {
+    if (!navigator.storage?.persist) return false;
+    return navigator.storage.persist().catch(() => false);
+  }
+
+  const pwaApi = Object.freeze({
+    getToolCacheStatus(toolId) {
+      return sendWorkerMessage({ type: 'CHECK_TOOL_CACHE', toolId });
+    },
+    async cacheTool(toolId, onProgress) {
+      const result = await sendWorkerMessage({ type: 'CACHE_TOOL', toolId }, onProgress);
+      await persistStorage();
+      return result;
+    }
+  });
+
+  globalThis.KomeriPwa = pwaApi;
+  document.dispatchEvent(new CustomEvent('komeri-pwa-api-ready'));
+
+  async function refreshOptionalStatus() {
     if (!elements.offlineButton) return;
     try {
-      const result = await sendWorkerMessage('CHECK_OPTIONAL_CACHE');
+      const result = await sendWorkerMessage({
+        type: 'CHECK_OPTIONAL_CACHE',
+        groupId: 'pesticide-all-data'
+      });
       if (result.complete) {
-        elements.offlineButton.textContent = 'オフライン用データ保存済み';
+        elements.offlineButton.textContent = '農薬全件データ保存済み';
         elements.offlineButton.disabled = true;
         setOptionalDownloadVisibility(true);
-        setStatus('基本画面と農薬データをオフラインで利用できます。', 'success');
+        setStatus('農薬の全件データを保存済みです。各ツールの保存状態は一覧で確認できます。', 'success');
       } else {
-        elements.offlineButton.textContent = isStandalone ? '農薬データを追加ダウンロード' : 'オフライン用データを保存';
+        elements.offlineButton.textContent = isStandalone
+          ? '農薬全件データを追加保存'
+          : '農薬全件データを保存';
         elements.offlineButton.disabled = false;
         setOptionalDownloadVisibility(false);
-        setStatus('基本機能は保存済みです。農薬データも保存すると、全ツールをオフラインで利用できます。');
+        setStatus('利用するツールは一覧の「オフライン保存」から個別に保存できます。');
       }
     } catch {
       // 初回登録直後など、まだ制御が始まっていない場合は次回表示時に再判定する。
@@ -181,27 +217,29 @@
 
   async function cacheOptionalData() {
     if (!elements.offlineButton) return;
-    setButtonBusy(elements.offlineButton, true, 'ダウンロード中…');
-    setStatus('農薬データを保存しています。通信を切らずにこの画面を開いてください。');
+    setButtonBusy(elements.offlineButton, true, '保存中…');
+    setStatus('農薬の全件データを保存しています。通信を切らずにこの画面を開いてください。');
 
     try {
-      await sendWorkerMessage('CACHE_OPTIONAL', message => {
-        if (message.type === 'CACHE_PROGRESS') {
-          elements.offlineButton.textContent = `ダウンロード中（${message.completed}/${message.total}）`;
-          setStatus(`オフライン用データを保存中（${message.completed}/${message.total}）`);
+      await sendWorkerMessage({
+        type: 'CACHE_OPTIONAL',
+        groupId: 'pesticide-all-data'
+      }, message => {
+        if (message.type === 'OPTIONAL_CACHE_PROGRESS') {
+          elements.offlineButton.textContent = `保存中（${message.completed}/${message.total}）`;
+          setStatus(`農薬の全件データを保存中（${message.completed}/${message.total}）`);
         }
       });
 
-      if (navigator.storage?.persist) {
-        await navigator.storage.persist().catch(() => false);
-      }
-
-      elements.offlineButton.textContent = 'オフライン用データ保存済み';
+      await persistStorage();
+      elements.offlineButton.textContent = '農薬全件データ保存済み';
       elements.offlineButton.disabled = true;
       setOptionalDownloadVisibility(true);
-      setStatus('約29 MBの農薬データを含め、オフライン利用の準備が完了しました。', 'success');
+      setStatus('約29 MBの農薬全件データを保存しました。農薬検索本体も一覧から保存してください。', 'success');
     } catch (error) {
-      elements.offlineButton.textContent = isStandalone ? '農薬データを追加ダウンロード' : 'オフライン用データを保存';
+      elements.offlineButton.textContent = isStandalone
+        ? '農薬全件データを追加保存'
+        : '農薬全件データを保存';
       elements.offlineButton.disabled = false;
       setOptionalDownloadVisibility(false);
       setStatus(`保存できませんでした：${error.message}`, 'error');
@@ -211,7 +249,7 @@
   function setupInstallPrompt() {
     if (isStandalone) {
       if (elements.installButton) elements.installButton.hidden = true;
-      setStatus('アプリとしてインストール済みです。');
+      setStatus('アプリとしてインストール済みです。利用するツールは一覧から個別に保存できます。');
     }
 
     window.addEventListener('beforeinstallprompt', event => {
@@ -223,7 +261,7 @@
     window.addEventListener('appinstalled', () => {
       installPrompt = null;
       if (elements.installButton) elements.installButton.hidden = true;
-      setStatus('端末へのインストールが完了しました。', 'success');
+      setStatus('端末へのインストールが完了しました。利用するツールを一覧から保存してください。', 'success');
     });
 
     elements.installButton?.addEventListener('click', async () => {
@@ -241,7 +279,7 @@
   function setupConnectionStatus() {
     const update = () => {
       document.documentElement.dataset.connection = navigator.onLine ? 'online' : 'offline';
-      if (!navigator.onLine) setStatus('現在オフラインです。保存済みの機能を利用できます。');
+      if (!navigator.onLine) setStatus('現在オフラインです。保存済みのツールを利用できます。');
     };
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
@@ -261,7 +299,8 @@
       });
       watchRegistration(registration);
       await navigator.serviceWorker.ready;
-      await refreshOfflineStatus();
+      await refreshOptionalStatus();
+      document.dispatchEvent(new CustomEvent('komeri-pwa-worker-ready'));
     } catch (error) {
       setStatus(`PWA機能を開始できませんでした：${error.message}`, 'error');
     }
