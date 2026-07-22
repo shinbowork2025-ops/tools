@@ -8,7 +8,7 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .tool-card-shell{position:relative;display:flex;min-width:0;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 2px 8px rgba(23,32,42,.05);overflow:hidden}
+    .tool-card-shell{position:relative;display:flex;min-width:0;flex-direction:column;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 2px 8px rgba(23,32,42,.05);overflow:hidden;content-visibility:auto;contain-intrinsic-size:180px}
     .tool-card-shell:hover{border-color:#9bb7cf}
     .tool-card-shell[data-offline="saved"]{border-color:#9fc5ad}
     .tool-card-link{display:block;flex:1;padding:16px 52px 12px 16px;color:inherit;text-decoration:none}

@@ -37,7 +37,7 @@
   .summary { font-size:.8rem; color:#555; margin:10px 2px; min-height:1.2em; scroll-margin-top:72px; }
   .notice { font-size:.72rem; color:var(--amber); background:var(--amber-soft); padding:8px 10px; border-radius:7px; margin:8px 0 12px; }
   .results { margin-top:4px; }
-  .result-card { background:var(--surface); border-radius:10px; padding:13px 14px; margin-bottom:9px; box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:4px solid var(--blue); }
+  .result-card { background:var(--surface); border-radius:10px; padding:13px 14px; margin-bottom:9px; box-shadow:0 1px 3px rgba(0,0,0,.08); border-left:4px solid var(--blue); content-visibility:auto; contain-intrinsic-size:auto 320px; }
   .product { font-size:1.07rem; font-weight:700; margin-bottom:3px; overflow-wrap:anywhere; white-space:pre-line; }
   .manufacturer { font-size:.76rem; color:var(--muted); margin-bottom:9px; }
   .badges { display:flex; flex-wrap:wrap; gap:5px; margin:5px 0 9px; }
