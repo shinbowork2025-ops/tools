@@ -33,6 +33,7 @@
       './tools/pesticide-search/styles.css',
       './tools/pesticide-search/js/garden-data.js',
       './tools/pesticide-search/js/data-loader.js',
+      './tools/pesticide-search/js/full-data-worker.js',
       './tools/pesticide-search/js/app.js',
       './tools/pesticide-search/js/multi-crop.js',
       './tools/pesticide-search/js/multi-crop-ui.js'
@@ -72,7 +73,7 @@
 
   self.KOMERI_OPTIONAL_ASSETS = Object.freeze({
     'pesticide-all-data': [
-      './tools/pesticide-search/js/all-data-extra.js'
+      './tools/pesticide-search/js/data.js'
     ]
   });
 })();

@@ -159,8 +159,9 @@
     list.slice(0, 100).forEach(crop => {
       const element = document.createElement('div');
       element.className = `chip${selectedCrops.has(crop) ? ' selected' : ''}`;
-      element.textContent = `${crop} (${rowsForCrop(crop).length})`;
-      element.onclick = () => {
+      element.textContent = `${crop} (${cropRowCount(crop)})`;
+      element.onclick = async () => {
+        await ensureFullCrop(crop);
         selectedProduct = null;
         if (selectedCrops.has(crop)) selectedCrops.delete(crop);
         else selectedCrops.add(crop);
@@ -284,10 +285,15 @@
     renderResults();
   };
 
-  showAllPesticidesInput.onchange = () => {
+  showAllPesticidesInput.onchange = async () => {
     showAllPesticides = showAllPesticidesInput.checked;
     visibleLimit = 200;
     resetCommonLimit();
+    if (showAllPesticides) {
+      if (selectedProduct) await ensureFullProduct(selectedProduct);
+      if (multiCropMode) await Promise.all(selectedCropList().map(ensureFullCrop));
+      else if (selectedCrop) await ensureFullCrop(selectedCrop);
+    }
     if (selectedProduct && !rowsForProduct(selectedProduct).length) selectedProduct = null;
     if (multiCropMode) {
       selectedCrops = new Set(selectedCropList().filter(crop => rowsForCrop(crop).length));

@@ -37,6 +37,10 @@ const pestChips=document.getElementById('pestChips');
 const byCrop=new Map();
 const byProduct=new Map();
 const productCounts=new Map();
+const cropCounts=new Map();
+const indexedRows=new Set();
+const loadedFullCrops=new Set();
+const loadedFullProducts=new Set();
 function baseCrop(s){ return (s||'').split(/[（(]/)[0].trim(); }
 function norm(s){ return (s||'').normalize('NFKC').toLowerCase().replace(/\s+/g,''); }
 function kanaFold(s){
@@ -51,29 +55,83 @@ function isGardenRow(r){return GARDEN_PRODUCT_KEYS.has(normProductKey(r[3]));}
 function allowedRows(rows){return showAllPesticides?rows:rows.filter(isGardenRow);}
 function rowsForCrop(c){return allowedRows(byCrop.get(c)||[]);}
 function rowsForProduct(name){return allowedRows(byProduct.get(name)||[]);}
-function activeCrops(){return allCrops.filter(c=>rowsForCrop(c).length);}
+function activeCrops(){return showAllPesticides?allCrops:gardenCrops;}
 function activeProducts(){return showAllPesticides?allProducts:gardenProducts;}
+function cropRowCount(name){
+  const counts=cropCounts.get(name);
+  return counts?(showAllPesticides?counts.all:counts.garden):0;
+}
 function productRowCount(name){
   const counts=productCounts.get(name);
   return counts?(showAllPesticides?counts.all:counts.garden):0;
 }
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-DATA.forEach(r=>{
-  const c=baseCrop(r[5]);
-  if(!byCrop.has(c))byCrop.set(c,[]);
-  byCrop.get(c).push(r);
-  const p=r[3];
-  if(!byProduct.has(p))byProduct.set(p,[]);
-  byProduct.get(p).push(r);
-  const counts=productCounts.get(p)||{all:0,garden:0};
-  counts.all++;
-  if(isGardenRow(r))counts.garden++;
-  productCounts.set(p,counts);
-});
-const allCrops=[...byCrop.keys()].sort((a,b)=>byCrop.get(b).length-byCrop.get(a).length||a.localeCompare(b,'ja'));
-const allProducts=[...byProduct.keys()].sort((a,b)=>productCounts.get(b).all-productCounts.get(a).all||a.localeCompare(b,'ja'));
-const gardenProducts=allProducts.filter(name=>productCounts.get(name).garden>0);
-const productSearchKeys=new Map(allProducts.map(name=>[name,productSearchKey(name)]));
+function rowKey(r){return r.join('\u001f');}
+function indexRows(rows,{equivalents=true,count=true}={}){
+  for(const r of rows||[]){
+    const unique=rowKey(r);
+    if(indexedRows.has(unique))continue;
+    indexedRows.add(unique);
+    const c=baseCrop(r[5]);
+    if(!byCrop.has(c))byCrop.set(c,[]);
+    byCrop.get(c).push(r);
+    const p=r[3];
+    if(!byProduct.has(p))byProduct.set(p,[]);
+    byProduct.get(p).push(r);
+    if(count){
+      const counts=productCounts.get(p)||{all:0,garden:0};
+      counts.all++;
+      if(isGardenRow(r))counts.garden++;
+      productCounts.set(p,counts);
+      const cropState=cropCounts.get(c)||{all:0,garden:0};
+      cropState.all++;
+      if(isGardenRow(r))cropState.garden++;
+      cropCounts.set(c,cropState);
+    }
+    if(equivalents)indexEquivalentRow(r);
+  }
+}
+let allCrops=[];
+let allProducts=[];
+let gardenCrops=[];
+let gardenProducts=[];
+const productSearchKeys=new Map();
+function sortIndexes(){
+  allCrops=[...cropCounts.keys()].sort((a,b)=>cropRowCountForSort(b)-cropRowCountForSort(a)||a.localeCompare(b,'ja'));
+  allProducts=[...productCounts.keys()].sort((a,b)=>(productCounts.get(b)?.all||0)-(productCounts.get(a)?.all||0)||a.localeCompare(b,'ja'));
+  gardenCrops=allCrops.filter(name=>(cropCounts.get(name)?.garden||0)>0);
+  gardenProducts=allProducts.filter(name=>(productCounts.get(name)?.garden||0)>0);
+  for(const name of allProducts)if(!productSearchKeys.has(name))productSearchKeys.set(name,productSearchKey(name));
+}
+function cropRowCountForSort(name){return cropCounts.get(name)?.all||0;}
+async function ensureFullCrop(name){
+  if(!showAllPesticides||loadedFullCrops.has(name))return;
+  directProductStatus.textContent=`${name} の全登録を読み込んでいます…`;
+  const result=await globalThis.PesticideFullData.crop(name);
+  indexRows(result.rows,{count:false});
+  loadedFullCrops.add(name);
+}
+async function ensureFullProduct(name){
+  if(!showAllPesticides||loadedFullProducts.has(name))return;
+  directProductStatus.textContent=`${name} の全登録を読み込んでいます…`;
+  const result=await globalThis.PesticideFullData.product(name);
+  indexRows(result.rows,{count:false});
+  indexRows(result.equivalents,{equivalents:true,count:false});
+  loadedFullProducts.add(name);
+}
+function activateFullData(metadata){
+  for(const [name,count] of metadata.cropCounts||[]){
+    const current=cropCounts.get(name)||{all:0,garden:0};
+    current.all=count;
+    cropCounts.set(name,current);
+  }
+  for(const [name,count] of metadata.productCounts||[]){
+    const current=productCounts.get(name)||{all:0,garden:0};
+    current.all=count;
+    productCounts.set(name,current);
+  }
+  sortIndexes();
+}
 let directProductMatches=[];
 
 /*
@@ -84,11 +142,13 @@ function equivalentSignature(r){
   return JSON.stringify([r[2],baseCrop(r[5]),r[6],r[7],r[8],r[9],r[10],r[11],r[12],r[13]]);
 }
 const equivalentRowsBySignature=new Map();
-DATA.forEach(r=>{
+function indexEquivalentRow(r){
   const key=equivalentSignature(r);
   if(!equivalentRowsBySignature.has(key))equivalentRowsBySignature.set(key,[]);
   equivalentRowsBySignature.get(key).push(r);
-});
+}
+indexRows(DATA);
+sortIndexes();
 function equivalentProducts(r){
   const source=equivalentRowsBySignature.get(equivalentSignature(r))||[];
   const seen=new Set(), list=[];
@@ -105,9 +165,10 @@ function equivalentProductsHtml(r){
   const shown=matches.slice(0,24);
   return `<details class="equivalent-box"><summary>同じ成分・濃度の可能性が高い別商品（${matches.length}件）</summary><div class="equivalent-note">登録データ内で、農薬の種類、作物、対象、希釈・使用量、使用時期、回数、方法、総使用回数が一致する別登録です。製品ラベルも確認してください。</div><div class="equivalent-links">${shown.map(x=>`<button type="button" class="equivalent-link" data-product-name="${esc(x[3])}" onclick="showEquivalentProduct(this.dataset.productName)">${esc(x[3])}${isGardenRow(x)?'（園芸）':''}</button>`).join('')}</div>${matches.length>shown.length?`<div class="equivalent-note">ほか ${matches.length-shown.length}件</div>`:''}</details>`;
 }
-function showEquivalentProduct(name){
+async function showEquivalentProduct(name){
   showAllPesticides=true;
   showAllPesticidesInput.checked=true;
+  await ensureFullProduct(name);
   selectedProduct=name||null;
   selectedCrop=null;
   selectedPest=null;
@@ -147,7 +208,8 @@ function scrollToSearchResults(){
   if(!target||!target.textContent.trim())return;
   scrollToSection(target);
 }
-function selectDirectProduct(name){
+async function selectDirectProduct(name){
+  await ensureFullProduct(name);
   selectedProduct=name;
   selectedCrop=null;
   selectedPest=null;
@@ -208,8 +270,9 @@ function renderCropChips(filter=''){
   list.slice(0,100).forEach(c=>{
     const el=document.createElement('div');
     el.className='chip'+(c===selectedCrop?' selected':'');
-    el.textContent=`${c} (${rowsForCrop(c).length})`;
-    el.onclick=()=>{
+    el.textContent=`${c} (${cropRowCount(c)})`;
+    el.onclick=async()=>{
+      await ensureFullCrop(c);
       selectedProduct=null;
       selectedCrop=c;
       selectedPest=null;
@@ -312,4 +375,9 @@ showAllPesticidesInput.onchange=()=>{
 document.getElementById('directProductClear').onclick=()=>{selectedProduct=null;directProductSearch.value='';visibleLimit=200;renderAll();directProductSearch.focus();};
 document.getElementById('cropClear').onclick=()=>{selectedCrop=null;selectedPest=null;productSearch.value='';visibleLimit=200;renderAll();};
 document.getElementById('pestClear').onclick=()=>{selectedPest=null;visibleLimit=200;renderAll();};
+globalThis.PesticideApp=Object.freeze({
+  activateFullData,
+  ensureFullCrop,
+  ensureFullProduct
+});
 renderAll();

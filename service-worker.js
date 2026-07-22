@@ -1,6 +1,6 @@
 importScripts('./sw-assets.js');
 
-const APP_VERSION = '1.4.0-prototype';
+const APP_VERSION = '1.4.1';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
@@ -64,6 +64,7 @@ self.addEventListener('activate', event => {
           .filter(name => name.startsWith(`${CACHE_PREFIX}-`) && !currentCaches.has(name))
           .map(name => caches.delete(name))
       ))
+      .then(() => self.registration.navigationPreload?.enable().catch(() => {}))
       .then(() => self.clients.claim())
   );
 });
@@ -86,9 +87,10 @@ async function savedOrNetwork(request) {
   return fetch(request);
 }
 
-async function networkFirstNavigation(request, fallback) {
+async function networkFirstNavigation(request, fallback, preloadResponse) {
   try {
-    return await fetch(request);
+    const preloaded = await Promise.resolve(preloadResponse).catch(() => undefined);
+    return preloaded || await fetch(request);
   } catch {
     return await caches.match(request, { ignoreSearch: true })
       || caches.match(absoluteUrl(fallback));
@@ -103,7 +105,7 @@ self.addEventListener('fetch', event => {
   if (url.origin !== location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstNavigation(request, './offline.html'));
+    event.respondWith(networkFirstNavigation(request, './offline.html', event.preloadResponse));
     return;
   }
 
@@ -141,19 +143,28 @@ async function toolStatus(toolId) {
 
 async function cachePaths(cacheName, paths, port, progressType) {
   const cache = await caches.open(cacheName);
+  let cursor = 0;
+  let completed = 0;
 
-  for (let index = 0; index < paths.length; index += 1) {
-    const path = paths[index];
-    const response = await fetch(new Request(absoluteUrl(path), { cache: 'reload' }));
-    if (!response.ok) throw new Error(`${path}: ${response.status}`);
-    await cache.put(absoluteUrl(path), response);
-    port?.postMessage({
-      type: progressType,
-      completed: index + 1,
-      total: paths.length,
-      path
-    });
+  async function cacheNext() {
+    while (cursor < paths.length) {
+      const index = cursor++;
+      const path = paths[index];
+      const response = await fetch(new Request(absoluteUrl(path), { cache: 'reload' }));
+      if (!response.ok) throw new Error(`${path}: ${response.status}`);
+      await cache.put(absoluteUrl(path), response);
+      completed += 1;
+      port?.postMessage({
+        type: progressType,
+        completed,
+        total: paths.length,
+        path
+      });
+    }
   }
+
+  const concurrency = Math.min(4, paths.length);
+  await Promise.all(Array.from({ length: concurrency }, cacheNext));
 }
 
 async function cacheTool(toolId, port) {
