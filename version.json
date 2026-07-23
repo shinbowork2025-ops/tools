@@ -1,8 +1,8 @@
 {
-  "version": "1.4.1",
-  "releasedAt": "2026-07-22",
-  "cacheSchema": 7,
+  "version": "1.5.0",
+  "releasedAt": "2026-07-23",
+  "cacheSchema": 8,
   "notes": [
-    "全件検索のWorker分離、段階読み込み、描画とオフラインキャッシュの高速化"
+    "テンキー入力の値入率計算を追加"
   ]
 }
