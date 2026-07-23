@@ -18,23 +18,38 @@
     <header>
       <a class="back-link" href="../../index.html">← ツール一覧へ戻る</a>
       <h1>値入率計算</h1>
-      <p class="subtitle">「仕入値.値入率」をテンキーで入力し、販売価格を計算します。</p>
+      <p class="subtitle">仕入値と値入率をテンキーで入力し、販売価格を計算します。</p>
     </header>
 
     <section class="result-panel" id="resultPanel" data-state="incomplete" aria-live="polite">
       <p class="result-label">販売価格</p>
       <p class="result-value"><span id="resultAmount">―</span><span class="result-unit">円</span></p>
       <p class="input-summary" id="inputSummary">仕入値と値入率を入力してください</p>
-      <p class="result-detail" id="resultDetail">例：500.3 → 仕入500円・値入率30%</p>
+      <p class="result-detail" id="resultDetail">例：仕入500円・値入率3% → 516円</p>
     </section>
 
-    <section class="input-panel" aria-labelledby="inputLabel">
+    <section class="input-panel" aria-labelledby="inputHeading">
       <div class="input-heading">
-        <label id="inputLabel" for="compositeInput">入力</label>
-        <span>x ÷ (1 − y)</span>
+        <h2 id="inputHeading">入力</h2>
+        <span>販売価格 ＝ 仕入値 ÷（1 − 値入率 ÷ 100）</span>
       </div>
-      <input id="compositeInput" type="text" value="" placeholder="500.3" readonly aria-describedby="inputHelp">
-      <p class="input-help" id="inputHelp">小数点より前が仕入値、後が値入率です。計算結果は1円単位で切り上げます。</p>
+      <div class="input-fields">
+        <div class="field">
+          <label for="costInput">仕入値</label>
+          <div class="input-wrap">
+            <input id="costInput" type="text" inputmode="none" placeholder="500" readonly aria-describedby="inputHelp">
+            <span class="suffix">円</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rateInput">値入率</label>
+          <div class="input-wrap">
+            <input id="rateInput" type="text" inputmode="none" placeholder="3.25" readonly aria-describedby="inputHelp">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+      <p class="input-help" id="inputHelp">入力欄をタップして切り替えます。どちらも小数点以下2桁まで入力でき、小数部を省略した場合は0として計算します。</p>
     </section>
 
     <section class="keypad" id="keypad" aria-label="数値入力テンキー">
@@ -45,7 +60,7 @@
       <button type="button" data-key="4">4</button>
       <button type="button" data-key="5">5</button>
       <button type="button" data-key="6">6</button>
-      <button class="utility-key" type="button" data-key="clear" aria-label="すべて消す">C</button>
+      <button class="utility-key" type="button" data-key="clear" aria-label="選択中の入力をすべて消す">C</button>
       <button type="button" data-key="1">1</button>
       <button type="button" data-key="2">2</button>
       <button type="button" data-key="3">3</button>
