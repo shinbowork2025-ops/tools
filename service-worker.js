@@ -1,6 +1,6 @@
 importScripts('./sw-assets.js');
 
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.5.0';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
