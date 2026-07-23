@@ -5,21 +5,27 @@ await import('../tools/markup-calculator/js/calc.js');
 const { MarkupCalc } = globalThis;
 assert.ok(MarkupCalc, 'MarkupCalcが公開されていること');
 
-const standard = MarkupCalc.parseInput('500.3');
+const standard = MarkupCalc.calculate('500', '3');
 assert.equal(standard.status, 'valid');
 assert.equal(standard.cost, 500);
-assert.equal(standard.rate, 0.3);
-assert.equal(standard.sellingPrice, 715);
-assert.ok(Math.abs(standard.rawPrice - 714.2857142857) < 1e-8);
+assert.equal(standard.ratePercent, 3);
+assert.equal(standard.rate, 0.03);
+assert.equal(standard.sellingPrice, 516);
+assert.ok(Math.abs(standard.rawPrice - 515.4639175258) < 1e-8);
 
-assert.equal(MarkupCalc.parseInput('1000.25').sellingPrice, 1334);
-assert.equal(MarkupCalc.parseInput('1000.0').sellingPrice, 1000);
-assert.equal(MarkupCalc.parseInput('500').status, 'incomplete');
-assert.equal(MarkupCalc.parseInput('500.').status, 'incomplete');
-assert.equal(MarkupCalc.parseInput('.3').status, 'incomplete');
-assert.equal(MarkupCalc.parseInput('0.3').status, 'invalid');
-assert.equal(MarkupCalc.parseInput('500.100').sellingPrice, 556);
-assert.equal(MarkupCalc.parseInput('500.9999999999999999').status, 'invalid');
-assert.equal(MarkupCalc.parseInput('500.3.0').status, 'invalid');
+const decimals = MarkupCalc.calculate('500.25', '3.25');
+assert.equal(decimals.cost, 500.25);
+assert.equal(decimals.ratePercent, 3.25);
+assert.equal(decimals.sellingPrice, 518);
 
-console.log('値入率計算の入力解析・切り上げ検査に成功');
+assert.equal(MarkupCalc.calculate('1000', '25').sellingPrice, 1334);
+assert.equal(MarkupCalc.calculate('1000.', '25.').sellingPrice, 1334, '小数部未入力は0扱い');
+assert.equal(MarkupCalc.calculate('500', '0').sellingPrice, 500);
+assert.equal(MarkupCalc.calculate('', '').status, 'incomplete');
+assert.equal(MarkupCalc.calculate('500', '').status, 'incomplete');
+assert.equal(MarkupCalc.calculate('0', '3').status, 'invalid');
+assert.equal(MarkupCalc.calculate('500.123', '3').status, 'invalid');
+assert.equal(MarkupCalc.calculate('500', '3.256').status, 'invalid');
+assert.equal(MarkupCalc.calculate('500', '100').status, 'invalid');
+
+console.log('値入率計算の2入力・小数2桁・切り上げ検査に成功');
