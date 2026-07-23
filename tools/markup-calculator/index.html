@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>値入率計算</title>
+  <meta name="theme-color" content="#1f5f95">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <a class="back-link" href="../../index.html">← ツール一覧へ戻る</a>
+      <h1>値入率計算</h1>
+      <p class="subtitle">仕入値と値入率をテンキーで入力し、販売価格を計算します。</p>
+    </header>
+
+    <section class="result-panel" id="resultPanel" data-state="incomplete" aria-live="polite">
+      <p class="result-label">販売価格</p>
+      <p class="result-value"><span id="resultAmount">―</span><span class="result-unit">円</span></p>
+      <p class="input-summary" id="inputSummary">仕入値と値入率を入力してください</p>
+      <p class="result-detail" id="resultDetail">例：仕入500円・値入率3% → 516円</p>
+    </section>
+
+    <section class="input-panel" aria-labelledby="inputHeading">
+      <div class="input-heading">
+        <h2 id="inputHeading">入力</h2>
+        <span>販売価格 ＝ 仕入値 ÷（1 − 値入率 ÷ 100）</span>
+      </div>
+      <div class="input-fields">
+        <div class="field">
+          <label for="costInput">仕入値</label>
+          <div class="input-wrap">
+            <input id="costInput" type="text" inputmode="none" placeholder="500" readonly aria-describedby="inputHelp">
+            <span class="suffix">円</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rateInput">値入率</label>
+          <div class="input-wrap">
+            <input id="rateInput" type="text" inputmode="none" placeholder="3.25" readonly aria-describedby="inputHelp">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+      <p class="input-help" id="inputHelp">入力欄をタップして切り替えます。どちらも小数点以下2桁まで入力でき、小数部を省略した場合は0として計算します。</p>
+    </section>
+
+    <section class="keypad" id="keypad" aria-label="数値入力テンキー">
+      <button type="button" data-key="7">7</button>
+      <button type="button" data-key="8">8</button>
+      <button type="button" data-key="9">9</button>
+      <button class="utility-key" type="button" data-key="backspace" aria-label="1文字消す">⌫</button>
+      <button type="button" data-key="4">4</button>
+      <button type="button" data-key="5">5</button>
+      <button type="button" data-key="6">6</button>
+      <button class="utility-key" type="button" data-key="clear" aria-label="選択中の入力をすべて消す">C</button>
+      <button type="button" data-key="1">1</button>
+      <button type="button" data-key="2">2</button>
+      <button type="button" data-key="3">3</button>
+      <button type="button" data-key="." aria-label="小数点">.</button>
+      <button class="zero-key" type="button" data-key="0">0</button>
+      <button class="double-zero-key" type="button" data-key="00">00</button>
+    </section>
+  </main>
+  <script src="js/calc.js"></script>
+  <script src="js/app.js" defer></script>
+  <script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>

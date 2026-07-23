@@ -63,6 +63,13 @@
       './tools/order-calculator/js/jan-scanner.js',
       './tools/jan-scanner/js/scan-consensus.js'
     ],
+    'markup-calculator': [
+      './tools/markup-calculator/',
+      './tools/markup-calculator/index.html',
+      './tools/markup-calculator/styles.css',
+      './tools/markup-calculator/js/calc.js',
+      './tools/markup-calculator/js/app.js'
+    ],
     'hose-length': [
       './tools/hose-length/',
       './tools/hose-length/index.html',
