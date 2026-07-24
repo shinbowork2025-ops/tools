@@ -75,6 +75,10 @@
       './tools/hose-length/index.html',
       './tools/hose-length/styles.css',
       './tools/hose-length/js/app.js'
+    ],
+    'feedback': [
+      './feedback/',
+      './feedback/index.html'
     ]
   });
 
