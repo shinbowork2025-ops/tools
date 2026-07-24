@@ -52,17 +52,6 @@
       './tools/power-tool-blade-search/js/app.js',
       './tools/power-tool-blade-search/js/data.js'
     ],
-    'order-calculator': [
-      './tools/order-calculator/',
-      './tools/order-calculator/index.html',
-      './tools/order-calculator/styles.css',
-      './tools/order-calculator/js/app.js',
-      './tools/order-calculator/js/calc.js',
-      './tools/order-calculator/js/db.js',
-      './tools/order-calculator/js/jan-camera-ui.js',
-      './tools/order-calculator/js/jan-scanner.js',
-      './tools/jan-scanner/js/scan-consensus.js'
-    ],
     'markup-calculator': [
       './tools/markup-calculator/',
       './tools/markup-calculator/index.html',
@@ -75,10 +64,6 @@
       './tools/hose-length/index.html',
       './tools/hose-length/styles.css',
       './tools/hose-length/js/app.js'
-    ],
-    'feedback': [
-      './feedback/',
-      './feedback/index.html'
     ]
   });
 

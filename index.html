@@ -17,8 +17,13 @@
 <body>
   <main>
     <header class="hero">
-      <p class="eyebrow">個人制作</p>
-      <h1>業務補助ツール</h1>
+      <div class="hero-heading">
+        <div>
+          <p class="eyebrow">個人制作</p>
+          <h1>業務補助ツール</h1>
+        </div>
+        <button type="button" id="shareQrButton" class="share-button">QRコードで共有</button>
+      </div>
       <p>スマートフォンやハンディ端末から使える、検索・計算・JAN管理ツールです。</p>
     </header>
 
@@ -41,45 +46,72 @@
       <p class="pwa-version">アプリ版 <span id="pwaVersion">確認中</span></p>
     </section>
 
-    <section class="tool-grid" aria-label="ツール一覧">
-      <a class="tool-card" href="tools/wood-cut-planner/">
-        <span class="category">木材加工・試作版</span><h2>木材カット図（試作版）</h2>
-        <p>板材へ直線カットを配置し、作業順と寸法を表示します。操作確認中の試作機能です。</p>
-      </a>
-      <a class="tool-card" href="tools/jan-scanner/">
-        <span class="category">JAN管理</span><h2>JANスキャンメモ</h2>
-        <p>カメラでJANを読み取り、番号とバーコードを端末内に保存します。</p>
-      </a>
-      <a class="tool-card" href="tools/pesticide-search/">
-        <span class="category">園芸</span><h2>農薬適用検索</h2>
-        <p>作物・病害虫・農薬名から登録内容と商品情報を検索します。</p>
-      </a>
-      <a class="tool-card" href="tools/chainsaw-parts-search/">
-        <span class="category">林業・工具</span><h2>チェーンソー部品検索</h2>
-        <p>機種と仕様から替刃、ガイドバー、互換機種を確認します。</p>
-      </a>
-      <a class="tool-card" href="tools/power-tool-blade-search/">
-        <span class="category">電動工具</span><h2>替刃・互換検索</h2>
-        <p>メーカーと型番から対応する替刃と仕様を確認します。</p>
-      </a>
-      <a class="tool-card" href="tools/order-calculator/">
-        <span class="category">発注支援・試作版</span><h2>発注数計算 v2</h2>
-        <p>JANスキャンと手入力で定期発注方式の推奨発注数を計算し、判断記録(ミニFVA)を端末内に蓄積します。</p>
-      </a>
-      <a class="tool-card" href="tools/markup-calculator/">
-        <span class="category">計算</span><h2>値入率計算</h2>
-        <p>仕入値と値入率を別々に入力し、小数点以下2桁まで使って販売価格を算出します。</p>
-      </a>
-      <a class="tool-card" href="tools/hose-length/">
-        <span class="category">計算</span><h2>ホース長さ計算</h2>
-        <p>リール全体・ドラム・1m当たりの重量から長さを推定します。</p>
-      </a>
-      <a class="tool-card" href="feedback/">
-        <span class="category">改善受付</span><h2>要望・不具合を送る</h2>
-        <p>本文を入力すると、環境情報を添えたGoogleフォームを開きます。</p>
-      </a>
+    <section aria-labelledby="toolListTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">用途から選択</p>
+          <h2 id="toolListTitle">使うツールを選ぶ</h2>
+        </div>
+        <p>よく使うツールは☆で上へ固定できます。</p>
+      </div>
+      <div class="tool-grid" aria-label="ツール一覧">
+        <a class="tool-card" href="tools/jan-scanner/">
+          <span class="category">JAN管理</span><h2>JANスキャンメモ</h2>
+          <p>商品バーコードを読み取り、番号・バーコード・メモを端末内に保存します。</p>
+        </a>
+        <a class="tool-card" href="tools/pesticide-search/">
+          <span class="category">園芸</span><h2>農薬適用検索</h2>
+          <p>農薬名、作物、病害虫から登録内容と商品情報を検索します。</p>
+        </a>
+        <a class="tool-card" href="tools/power-tool-blade-search/">
+          <span class="category">電動工具</span><h2>替刃・互換検索</h2>
+          <p>メーカーと本体型番から対応する替刃と仕様を確認します。</p>
+        </a>
+        <a class="tool-card" href="tools/chainsaw-parts-search/">
+          <span class="category">林業・工具</span><h2>チェーンソー部品検索</h2>
+          <p>機種と仕様から替刃、ガイドバー、互換機種を確認します。</p>
+        </a>
+        <a class="tool-card" href="tools/hose-length/">
+          <span class="category">計算</span><h2>ホース長さ計算</h2>
+          <p>リール全体・ドラム・1 m当たりの重量から長さを推定します。</p>
+        </a>
+        <a class="tool-card" href="tools/markup-calculator/">
+          <span class="category">計算</span><h2>値入率計算</h2>
+          <p>仕入値と値入率を入力し、販売価格を1円単位で切り上げて算出します。</p>
+        </a>
+        <a class="tool-card" href="tools/wood-cut-planner/">
+          <span class="category">木材加工・試作版</span><h2>木材カット図（試作版）</h2>
+          <p>材料を選び、図面上で直線カットと作業順を作成します。</p>
+        </a>
+        <a class="tool-card" href="feedback/">
+          <span class="category">改善受付</span><h2>要望・不具合を送る</h2>
+          <p>本文を入力すると、環境情報を添えたGoogleフォームを開きます。</p>
+        </a>
+      </div>
     </section>
   </main>
+
+  <dialog id="shareDialog" class="share-dialog" aria-labelledby="shareDialogTitle">
+    <div class="share-dialog-header">
+      <div>
+        <p class="eyebrow">別の端末へ案内</p>
+        <h2 id="shareDialogTitle">ツールを共有</h2>
+      </div>
+      <button type="button" id="closeShareDialogButton" class="dialog-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="qr-frame">
+      <img id="shareQrImage" alt="業務補助ツールを開くQRコード" width="320" height="320">
+    </div>
+    <label class="share-url-label" for="shareUrl">共有URL</label>
+    <input id="shareUrl" class="share-url" type="text" readonly>
+    <div class="share-actions">
+      <button type="button" id="nativeShareButton" class="primary-button">端末の共有を開く</button>
+      <button type="button" id="copyShareUrlButton">URLをコピー</button>
+    </div>
+    <p id="shareStatus" class="share-status" aria-live="polite">このQRコードを別の端末で読み取ってください。</p>
+  </dialog>
+
   <script src="shared/js/pwa-client.js" defer></script>
+  <script src="assets/share.js" defer></script>
 </body>
 </html>

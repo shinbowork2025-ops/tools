@@ -51,6 +51,25 @@
     document.head.appendChild(script);
   }
 
+  function loadToolGuidance() {
+    if (!/\/tools\/[^/]+\/?(?:index\.html)?$/.test(location.pathname)) return;
+
+    if (!document.querySelector('link[data-tool-guidance]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = new URL('shared/css/tool-guide.css', rootUrl).href;
+      link.dataset.toolGuidance = '1';
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-tool-guidance]')) {
+      const script = document.createElement('script');
+      script.src = new URL('shared/js/tool-guide.js', rootUrl).href;
+      script.dataset.toolGuidance = '1';
+      document.head.appendChild(script);
+    }
+  }
+
   function prepareStandalonePanel() {
     if (!isStandalone || !elements.panel) return;
     elements.panel.classList.add('is-standalone');
@@ -313,6 +332,7 @@
   });
 
   loadHomeEnhancements();
+  loadToolGuidance();
   prepareStandalonePanel();
   elements.offlineButton?.addEventListener('click', cacheOptionalData);
   setupInstallPrompt();
