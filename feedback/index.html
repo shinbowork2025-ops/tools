@@ -9,14 +9,12 @@
   <link rel="manifest" href="../manifest.webmanifest">
   <link rel="icon" href="../icons/favicon.svg" type="image/svg+xml">
   <style>
-    :root{--bg:#f3f5f7;--surface:#fff;--text:#17202a;--muted:#5f6b76;--line:#d8e0e7;--accent:#1f5f95;--danger:#a43a32;--success:#176137;--notice:#fff8df}
+    :root{--bg:#f3f5f7;--surface:#fff;--text:#17202a;--muted:#5f6b76;--line:#d8e0e7;--accent:#1f5f95;--danger:#a43a32}
     *{box-sizing:border-box}html{font-family:"UD デジタル 教科書体 N-R","BIZ UDPGothic","Yu Gothic UI",Meiryo,sans-serif;background:var(--bg);color:var(--text)}body{margin:0}main{width:min(100% - 24px,720px);margin:0 auto;padding:18px 0 calc(40px + env(safe-area-inset-bottom))}
     .back-link{display:inline-flex;align-items:center;min-height:44px;margin-bottom:10px;color:var(--accent);font-weight:700;text-decoration:none}.hero{margin-bottom:18px}.eyebrow{margin:0 0 5px;color:var(--accent);font-size:.8rem;font-weight:700}.hero h1{margin:0;font-size:clamp(1.55rem,6vw,2.2rem)}.hero p{margin:9px 0 0;color:var(--muted);line-height:1.65}
-    .panel{padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 2px 8px rgba(23,32,42,.05)}label{display:block;margin-bottom:8px;font-weight:700}.required{color:var(--danger);font-size:.78rem}textarea{width:100%;min-height:180px;padding:14px;border:1px solid #aebbc6;border-radius:11px;background:#fff;color:var(--text);font:inherit;font-size:1rem;line-height:1.6;resize:vertical}textarea:focus,input:focus,button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid rgba(31,95,149,.25);outline-offset:2px;border-color:var(--accent)}.counter{margin:6px 0 18px;text-align:right;color:var(--muted);font-size:.75rem}
-    .file-label{display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 14px;border:1px solid #9bb7cf;border-radius:10px;background:#f7fbff;color:#194f88;cursor:pointer}.file-label input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.file-help{margin:7px 0 0;color:var(--muted);font-size:.76rem;line-height:1.55}.preview{display:grid;gap:10px;margin-top:12px}.preview[hidden]{display:none}.preview img{display:block;width:100%;max-height:360px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#eef1f4}.preview-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.preview-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.78rem}.remove-button{min-height:40px;padding:7px 12px;border:1px solid #d5a8a3;border-radius:8px;background:#fff;color:var(--danger);font:inherit;font-weight:700}
-    .notice{padding:12px 14px;margin:18px 0;border:1px solid #ead99f;border-radius:12px;background:var(--notice);font-size:.8rem;line-height:1.65}.notice strong{display:block;margin-bottom:3px}details{margin:0 0 18px;border:1px solid var(--line);border-radius:11px;background:#fafbfd}summary{min-height:46px;padding:12px 14px;color:var(--accent);font-size:.82rem;font-weight:700;cursor:pointer}.environment{margin:0;padding:0 14px 14px;list-style:none;color:var(--muted);font-size:.75rem;line-height:1.75}.environment li{overflow-wrap:anywhere}
-    .submit-button{width:100%;min-height:52px;padding:12px 16px;border:1px solid var(--accent);border-radius:11px;background:var(--accent);color:#fff;font:inherit;font-size:1rem;font-weight:700;cursor:pointer}.submit-button:disabled{cursor:default;opacity:.6}.status{min-height:1.5em;margin:12px 0 0;font-size:.82rem;line-height:1.5}.status[data-kind="error"]{color:var(--danger)}.status[data-kind="success"]{color:var(--success)}
-    .bot-field{position:absolute!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;border:0!important}
+    .panel{padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 2px 8px rgba(23,32,42,.05)}label{display:block;margin-bottom:8px;font-weight:700}.required{color:var(--danger);font-size:.78rem}textarea{width:100%;min-height:220px;padding:14px;border:1px solid #aebbc6;border-radius:11px;background:#fff;color:var(--text);font:inherit;font-size:1rem;line-height:1.6;resize:vertical}textarea:focus,button:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid rgba(31,95,149,.25);outline-offset:2px;border-color:var(--accent)}.counter{margin:6px 0 18px;text-align:right;color:var(--muted);font-size:.75rem}
+    details{margin:0 0 18px;border:1px solid var(--line);border-radius:11px;background:#fafbfd}summary{min-height:46px;padding:12px 14px;color:var(--accent);font-size:.82rem;font-weight:700;cursor:pointer}.environment{margin:0;padding:0 14px 14px;list-style:none;color:var(--muted);font-size:.75rem;line-height:1.75}.environment li{overflow-wrap:anywhere}.help{margin:0 0 18px;color:var(--muted);font-size:.76rem;line-height:1.6}
+    .submit-button{width:100%;min-height:52px;padding:12px 16px;border:1px solid var(--accent);border-radius:11px;background:var(--accent);color:#fff;font:inherit;font-size:1rem;font-weight:700;cursor:pointer}.submit-button:disabled{cursor:default;opacity:.6}.status{min-height:1.5em;margin:12px 0 0;color:var(--danger);font-size:.82rem;line-height:1.5}
   </style>
 </head>
 <body>
@@ -25,41 +23,21 @@
     <header class="hero">
       <p class="eyebrow">改善受付</p>
       <h1>要望・不具合を送る</h1>
-      <p>内容を入力し、必要な場合だけスクリーンショットを添付してください。</p>
+      <p>内容を入力すると、環境情報を添えたGoogleフォームを開きます。フォーム上で内容を確認して送信してください。</p>
     </header>
 
-    <form class="panel" id="feedbackForm" name="tool-feedback" method="POST" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="tool-feedback">
-      <input type="hidden" name="app-version" id="appVersion">
-      <input type="hidden" name="environment" id="environmentValue">
-      <input type="hidden" name="sent-at" id="sentAt">
-      <p class="bot-field"><label>入力しないでください<input name="bot-field"></label></p>
-
+    <form class="panel" id="feedbackForm">
       <label for="message">要望・不具合の内容 <span class="required">必須</span></label>
-      <textarea id="message" name="body" maxlength="2000" required autocomplete="off" placeholder="どの画面で、何をしたときに、どうなったかを書いてください。改善の要望だけでも送れます。"></textarea>
+      <textarea id="message" maxlength="2000" required autocomplete="off" placeholder="どの画面で、何をしたときに、どうなったかを書いてください。改善の要望だけでも送れます。"></textarea>
       <p class="counter"><span id="messageCount">0</span> / 2000文字</p>
 
-      <label class="file-label" for="screenshot">スクリーンショットを追加（任意）
-        <input id="screenshot" name="screenshot" type="file" accept="image/png,image/jpeg,image/webp">
-      </label>
-      <p class="file-help">PNG・JPEG・WebP、5 MB以下、1枚まで。選択後に送信画像を確認できます。</p>
-      <div class="preview" id="preview" hidden>
-        <img id="previewImage" alt="選択したスクリーンショットのプレビュー">
-        <div class="preview-row"><span class="preview-name" id="previewName"></span><button class="remove-button" id="removeImage" type="button">画像を取り消す</button></div>
-      </div>
-
-      <div class="notice">
-        <strong>送信前に確認してください</strong>
-        スクリーンショットに氏名、社員番号、客注情報などが写っていないことを確認してください。
-      </div>
-
       <details>
-        <summary>自動添付される情報を見る</summary>
+        <summary>Googleフォームへ添付する情報を見る</summary>
         <ul class="environment" id="environmentList"></ul>
       </details>
-      <p class="file-help">ツール名、バージョン、OS、ブラウザ、画面サイズ、起動方法、送信日時を自動で添付します。位置情報、社員番号、検索履歴は取得しません。</p>
+      <p class="help">ツール名、バージョン、OS、ブラウザ、画面サイズ、起動方法、送信日時を自動で入力します。位置情報、社員番号、検索履歴は取得しません。</p>
 
-      <button class="submit-button" id="submitButton" type="submit">内容を確認して送信</button>
+      <button class="submit-button" id="submitButton" type="submit">Googleフォームで確認する</button>
       <p class="status" id="status" role="status" aria-live="polite"></p>
     </form>
   </main>
@@ -67,23 +45,16 @@
   <script>
     (() => {
       'use strict';
-      const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+      const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScQrxGQrVgDRbN_OBXHlMX819UkLCFHSGBY4FD5tlGQWcQv0A/viewform';
+      const MESSAGE_ENTRY = 'entry.1347419529';
+      const ENVIRONMENT_ENTRY = 'entry.335042774';
       const form = document.getElementById('feedbackForm');
       const message = document.getElementById('message');
       const count = document.getElementById('messageCount');
-      const screenshot = document.getElementById('screenshot');
-      const preview = document.getElementById('preview');
-      const previewImage = document.getElementById('previewImage');
-      const previewName = document.getElementById('previewName');
-      const removeImage = document.getElementById('removeImage');
       const submitButton = document.getElementById('submitButton');
       const status = document.getElementById('status');
-      let previewUrl = null;
-
-      function setStatus(text, kind = '') {
-        status.textContent = text;
-        status.dataset.kind = kind;
-      }
+      let environmentText = '';
 
       function detectOs() {
         const ua = navigator.userAgent;
@@ -126,44 +97,19 @@
           '画面サイズ': `${screen.width} × ${screen.height}`,
           '表示領域': `${window.innerWidth} × ${window.innerHeight}`,
           '起動方法': standalone ? 'PWA' : 'ブラウザ',
-          '送信時の通信': navigator.onLine ? 'オンライン' : 'オフライン'
+          '通信状態': navigator.onLine ? 'オンライン' : 'オフライン',
+          '作成日時': new Date().toLocaleString('ja-JP')
         };
-        document.getElementById('appVersion').value = version;
-        document.getElementById('environmentValue').value = Object.entries(values).map(([key, value]) => `${key}: ${value}`).join('\n');
-        document.getElementById('environmentList').innerHTML = Object.entries(values).map(([key, value]) => `<li><strong>${key}:</strong> ${value}</li>`).join('');
+        environmentText = Object.entries(values).map(([key, value]) => `${key}: ${value}`).join('\n');
+        document.getElementById('environmentList').innerHTML = Object.entries(values)
+          .map(([key, value]) => `<li><strong>${key}:</strong> ${value}</li>`)
+          .join('');
       }
 
-      function clearPreview() {
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
-        screenshot.value = '';
-        preview.hidden = true;
-        previewImage.removeAttribute('src');
-        previewName.textContent = '';
-      }
-
-      message.addEventListener('input', () => { count.textContent = String(message.value.length); });
-      screenshot.addEventListener('change', () => {
-        const file = screenshot.files?.[0];
-        if (!file) return clearPreview();
-        if (!file.type.startsWith('image/')) {
-          clearPreview();
-          setStatus('画像ファイルを選択してください。', 'error');
-          return;
-        }
-        if (file.size > MAX_FILE_SIZE) {
-          clearPreview();
-          setStatus('画像は5 MB以下にしてください。', 'error');
-          return;
-        }
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-        previewUrl = URL.createObjectURL(file);
-        previewImage.src = previewUrl;
-        previewName.textContent = `${file.name}（${(file.size / 1024 / 1024).toFixed(2)} MB）`;
-        preview.hidden = false;
-        setStatus('');
+      message.addEventListener('input', () => {
+        count.textContent = String(message.value.length);
+        status.textContent = '';
       });
-      removeImage.addEventListener('click', clearPreview);
       window.addEventListener('resize', refreshEnvironment);
       window.addEventListener('online', refreshEnvironment);
       window.addEventListener('offline', refreshEnvironment);
@@ -172,32 +118,19 @@
         event.preventDefault();
         if (!form.reportValidity()) return;
         if (!navigator.onLine) {
-          setStatus('現在オフラインです。通信できる場所で再度送信してください。', 'error');
+          status.textContent = '現在オフラインです。通信できる場所で再度お試しください。';
           return;
         }
-        const confirmed = window.confirm('入力内容とスクリーンショットを送信します。よろしいですか？');
-        if (!confirmed) return;
 
         submitButton.disabled = true;
-        submitButton.textContent = '送信中…';
-        setStatus('送信しています。');
-        document.getElementById('sentAt').value = new Date().toISOString();
+        submitButton.textContent = 'Googleフォームを開いています…';
         await refreshEnvironment();
 
-        try {
-          const response = await fetch('/', { method: 'POST', body: new FormData(form) });
-          if (!response.ok) throw new Error(String(response.status));
-          form.reset();
-          count.textContent = '0';
-          clearPreview();
-          await refreshEnvironment();
-          setStatus('送信しました。ご協力ありがとうございます。', 'success');
-        } catch {
-          setStatus('送信できませんでした。通信状態を確認して、もう一度お試しください。', 'error');
-        } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = '内容を確認して送信';
-        }
+        const url = new URL(FORM_URL);
+        url.searchParams.set('usp', 'pp_url');
+        url.searchParams.set(MESSAGE_ENTRY, message.value.trim());
+        url.searchParams.set(ENVIRONMENT_ENTRY, environmentText);
+        window.location.assign(url.toString());
       });
 
       refreshEnvironment();
