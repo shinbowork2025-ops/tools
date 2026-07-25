@@ -54,10 +54,10 @@ function extractAssetGroups(source, variableName) {
   return groups;
 }
 
-function reportDuplicates(label, assets) {
+function reportDuplicates(label, assets, itemLabel = '保存対象') {
   const duplicates = assets.filter((asset, index) => assets.indexOf(asset) !== index);
   if (duplicates.length) {
-    errors.push(`${label}の保存対象が重複しています: ${[...new Set(duplicates)].join(', ')}`);
+    errors.push(`${label}の${itemLabel}が重複しています: ${[...new Set(duplicates)].join(', ')}`);
   }
 }
 
@@ -91,6 +91,14 @@ for (const asset of new Set(allAssets)) {
 }
 
 const topPage = read('index.html');
+const pesticidePage = read('tools/pesticide-search/index.html');
+const pesticideLoader = read('tools/pesticide-search/js/data-loader.js');
+const pesticideScripts = [
+  ...pesticidePage.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi),
+  ...pesticideLoader.matchAll(/loadScript\(["']([^"']+)["']\)/g)
+].map(match => match[1]);
+reportDuplicates('農薬検索画面', pesticideScripts, 'スクリプト読み込み');
+
 const cardToolIds = [
   ...topPage.matchAll(/href=["']tools\/([^/"']+)\/["']/g)
 ].map(match => match[1]);
