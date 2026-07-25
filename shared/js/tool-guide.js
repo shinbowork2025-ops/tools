@@ -40,7 +40,6 @@
     },
     'hose-length': {
       title: 'ホース長さ計算',
-      compact: true,
       steps: [
         'ホースを巻いた状態の全重量を入力します。',
         '空ドラム重量と、ホース1 m当たりの重量を入力します。',
@@ -50,7 +49,6 @@
     },
     'markup-calculator': {
       title: '値入率計算',
-      compact: true,
       steps: [
         '仕入値の入力欄をタップし、テンキーで金額を入力します。',
         '値入率の入力欄をタップし、百分率を入力します。',
@@ -78,7 +76,7 @@
 
   const section = document.createElement('section');
   section.className = 'quick-guide';
-  if (guide.compact) section.classList.add('quick-guide--compact');
+  section.id = 'toolQuickGuide';
   section.dataset.quickGuide = toolId;
   section.setAttribute('aria-label', `${guide.title}の使い方`);
 
@@ -114,9 +112,34 @@
   section.append(heading, list, details);
 
   const header = document.querySelector('header');
-  const sub = document.querySelector('h1 + .sub, .sub');
-  const anchor = toolId === 'jan-scanner'
-    ? document.querySelector('header h1')
-    : header || sub || document.querySelector('h1');
-  anchor?.insertAdjacentElement('afterend', section);
+  const guideLink = document.createElement('a');
+  guideLink.className = 'quick-guide-link';
+  guideLink.href = `#${section.id}`;
+  guideLink.textContent = '使い方はこちら';
+  guideLink.setAttribute('aria-label', `${guide.title}の使い方へ移動`);
+
+  let navigation = header?.querySelector('.tool-nav, .tool-top-actions');
+  if (!navigation) {
+    const backLink = header?.querySelector('a[href^="../../"]');
+    if (backLink) {
+      navigation = document.createElement('nav');
+      navigation.setAttribute('aria-label', 'ページ移動');
+      backLink.before(navigation);
+      navigation.append(backLink);
+    }
+  }
+
+  if (navigation) {
+    navigation.classList.add('quick-guide-nav-host');
+    navigation.append(guideLink);
+  } else {
+    header?.append(guideLink);
+  }
+
+  const contentRoot = toolId === 'hose-length'
+    ? document.body
+    : document.querySelector('main:not(.workspace)')
+      || document.querySelector('.app-shell, .app')
+      || document.body;
+  contentRoot.append(section);
 })();
