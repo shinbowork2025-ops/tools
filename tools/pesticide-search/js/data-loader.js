@@ -65,7 +65,6 @@
     try {
       await loadScript('js/app.js');
       await loadScript('js/multi-crop-ui.js');
-      await loadScript('../../shared/js/pwa-client.js');
 
       const toggle = document.getElementById('showAllPesticides');
       if (!toggle) return;
