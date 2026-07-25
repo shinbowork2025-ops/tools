@@ -1,6 +1,6 @@
 importScripts('./sw-assets.js');
 
-const APP_VERSION = '1.6.0';
+const APP_VERSION = '1.7.0';
 const CACHE_PREFIX = 'komeri-tools';
 const PRECACHE_NAME = `${CACHE_PREFIX}-precache-v${APP_VERSION}`;
 const DATA_CACHE_NAME = `${CACHE_PREFIX}-data-v${APP_VERSION}`;
@@ -17,14 +17,17 @@ const CORE_ASSETS = [
   './sw-assets.js',
   './assets/site.css',
   './assets/site.js',
+  './assets/share.js',
   './icons/favicon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
+  './shared/css/tool-guide.css',
   './shared/js/jan-code.js',
   './shared/js/ean13.js',
-  './shared/js/pwa-client.js'
+  './shared/js/pwa-client.js',
+  './shared/js/tool-guide.js'
 ];
 
 const TOOL_ASSETS = self.KOMERI_TOOL_ASSETS || {};
