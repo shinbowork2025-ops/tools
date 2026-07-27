@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>社内資格トレーニング</title>
+  <meta name="theme-color" content="#1f5f95">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <a class="back-link" href="../../index.html">← ツール一覧へ戻る</a>
+      <p class="eyebrow">FSRSで復習時期を調整</p>
+      <h1>社内資格トレーニング</h1>
+      <p class="subtitle">Anki用CSVを資格ごとに登録し、忘れかける時期に復習します。問題と学習履歴はこの端末内だけに保存されます。</p>
+    </header>
+
+    <div id="appStatus" class="app-status" role="status" aria-live="polite"></div>
+
+    <div id="managementView">
+      <section class="panel" aria-labelledby="deckHeading">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">1</p>
+            <h2 id="deckHeading">資格を選ぶ</h2>
+          </div>
+          <span id="deckCount" class="section-meta"></span>
+        </div>
+        <div id="deckList" class="deck-list"></div>
+        <p id="emptyDecks" class="empty-message">まだ資格が登録されていません。下の欄からAnki用CSVを登録してください。</p>
+      </section>
+
+      <section class="panel" aria-labelledby="importHeading">
+        <div class="section-heading">
+          <div>
+            <p class="step-label">2</p>
+            <h2 id="importHeading">Anki用CSVを登録</h2>
+          </div>
+        </div>
+        <p class="panel-description"><code>Front</code>、<code>Back</code>、<code>Tags</code>列をそのまま利用できます。複数の資格を別々に登録できます。</p>
+        <input id="csvFileInput" class="visually-hidden" type="file" accept=".csv,text/csv">
+        <label class="file-button" for="csvFileInput">CSVファイルを選ぶ</label>
+
+        <div id="importPreview" class="import-preview" hidden>
+          <label for="qualificationTitle">資格名</label>
+          <input id="qualificationTitle" type="text" maxlength="80" autocomplete="off">
+          <p id="importSummary"></p>
+          <button id="confirmImportButton" class="primary-button" type="button">この内容で登録</button>
+        </div>
+        <p class="privacy-note">CSVは外部へ送信しません。ブラウザのデータを消去すると、登録問題と学習履歴も消えます。</p>
+      </section>
+
+      <section id="deckDetails" class="panel deck-details" aria-labelledby="selectedDeckTitle" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="step-label">3</p>
+            <h2 id="selectedDeckTitle"></h2>
+          </div>
+        </div>
+        <div class="stats-grid" aria-label="学習状況">
+          <div><strong id="dueCount">0</strong><span>復習期限</span></div>
+          <div><strong id="newCount">0</strong><span>未学習</span></div>
+          <div><strong id="learnedCount">0</strong><span>学習済み</span></div>
+          <div><strong id="totalCount">0</strong><span>全問題</span></div>
+        </div>
+        <p id="studyPlan" class="study-plan"></p>
+        <div class="deck-actions">
+          <button id="startStudyButton" class="primary-button" type="button">学習を始める</button>
+          <button id="deleteDeckButton" class="danger-button" type="button">この資格を削除</button>
+        </div>
+      </section>
+    </div>
+
+    <section id="studyView" class="study-view" aria-labelledby="questionHeading" hidden>
+      <div class="study-toolbar">
+        <button id="leaveStudyButton" type="button">← 資格一覧</button>
+        <span id="sessionProgress"></span>
+      </div>
+
+      <article id="questionCard" class="question-card">
+        <p class="question-label">問題</p>
+        <div id="questionHeading" class="question-content" tabindex="-1"></div>
+        <div id="choiceButtons" class="choice-buttons" aria-label="解答を選ぶ"></div>
+        <button id="revealAnswerButton" class="primary-button reveal-button" type="button" hidden>答えを見る</button>
+
+        <div id="answerArea" class="answer-area" aria-live="polite" hidden>
+          <p id="answerResult" class="answer-result"></p>
+          <div id="answerContent" class="answer-content"></div>
+        </div>
+
+        <div id="ratingArea" class="rating-area" hidden>
+          <p id="ratingGuide">思い出せた感覚に近いものを選んでください。</p>
+          <div class="rating-buttons">
+            <button type="button" data-rating="1"><strong>もう一度</strong><span></span></button>
+            <button type="button" data-rating="2"><strong>難しい</strong><span></span></button>
+            <button type="button" data-rating="3"><strong>普通</strong><span></span></button>
+            <button type="button" data-rating="4"><strong>簡単</strong><span></span></button>
+          </div>
+        </div>
+      </article>
+
+      <div id="studyComplete" class="panel study-complete" hidden>
+        <h2>今回の学習は完了です</h2>
+        <p id="completeSummary"></p>
+        <button id="completeBackButton" class="primary-button" type="button">学習状況へ戻る</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+  <script src="../../shared/js/pwa-client.js" defer></script>
+</body>
+</html>
