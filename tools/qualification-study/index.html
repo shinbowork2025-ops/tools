@@ -70,6 +70,11 @@
           <div><strong id="learnedCount">0</strong><span>学習済み</span></div>
           <div><strong id="totalCount">0</strong><span>全問題</span></div>
         </div>
+        <div class="study-settings">
+          <label for="dailyNewLimitSelect">1日の新規問題数</label>
+          <select id="dailyNewLimitSelect" aria-describedby="dailyNewLimitHelp"></select>
+          <p id="dailyNewLimitHelp">新しく学ぶ問題数を選択します。復習期限の問題はこの上限に含みません。</p>
+        </div>
         <p id="studyPlan" class="study-plan"></p>
         <div class="deck-actions">
           <button id="startStudyButton" class="primary-button" type="button">学習を始める</button>

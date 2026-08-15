@@ -71,6 +71,7 @@
       './tools/qualification-study/styles.css',
       './tools/qualification-study/js/app.js',
       './tools/qualification-study/js/csv-import.js',
+      './tools/qualification-study/js/settings.js',
       './tools/qualification-study/js/storage.js',
       './tools/qualification-study/vendor/ts-fsrs.mjs',
       './tools/qualification-study/vendor/LICENSE.ts-fsrs'

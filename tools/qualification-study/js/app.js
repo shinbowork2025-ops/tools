@@ -7,9 +7,15 @@ import {
   saveDeck,
   saveQuestionProgress
 } from './storage.js';
+import {
+  DAILY_NEW_LIMIT_OPTIONS,
+  DEFAULT_DAILY_NEW_LIMIT,
+  deleteDailyNewLimit,
+  loadDailyNewLimit,
+  saveDailyNewLimit
+} from './settings.js';
 import { createEmptyCard, fsrs } from '../vendor/ts-fsrs.mjs';
 
-const DAILY_NEW_LIMIT = 10;
 const scheduler = fsrs({
   request_retention: 0.9,
   maximum_interval: 36500,
@@ -24,8 +30,8 @@ const elements = Object.fromEntries([
   'appStatus', 'managementView', 'deckCount', 'deckList', 'emptyDecks', 'csvFileInput',
   'importPreview', 'qualificationTitle', 'importSummary', 'confirmImportButton',
   'deckDetails', 'selectedDeckTitle', 'dueCount', 'newCount', 'learnedCount',
-  'totalCount', 'studyPlan', 'startStudyButton', 'deleteDeckButton', 'studyView',
-  'leaveStudyButton', 'sessionProgress', 'questionCard', 'questionHeading',
+  'totalCount', 'dailyNewLimitSelect', 'studyPlan', 'startStudyButton', 'deleteDeckButton',
+  'studyView', 'leaveStudyButton', 'sessionProgress', 'questionCard', 'questionHeading',
   'choiceButtons', 'revealAnswerButton', 'answerArea', 'answerResult', 'answerContent',
   'ratingArea', 'ratingGuide', 'studyComplete', 'completeSummary', 'completeBackButton'
 ].map(id => [id, document.getElementById(id)]));
@@ -35,6 +41,7 @@ const state = {
   currentDeck: null,
   progress: new Map(),
   pendingImport: null,
+  dailyNewLimit: DEFAULT_DAILY_NEW_LIMIT,
   queue: [],
   sessionTotal: 0,
   sessionReviewed: 0,
@@ -90,6 +97,16 @@ function formatInterval(due, now) {
   return `${years < 10 ? years.toFixed(1) : Math.round(years)}年後`;
 }
 
+function prepareDailyNewLimitSelect() {
+  const options = DAILY_NEW_LIMIT_OPTIONS.map(limit => {
+    const option = document.createElement('option');
+    option.value = String(limit);
+    option.textContent = `${limit}問`;
+    return option;
+  });
+  elements.dailyNewLimitSelect.replaceChildren(...options);
+}
+
 function getStudyCounts() {
   if (!state.currentDeck) return { due: 0, learned: 0, unseen: 0, newToday: 0, newAllowance: 0 };
   const now = Date.now();
@@ -112,7 +129,7 @@ function getStudyCounts() {
     learned,
     unseen,
     newToday,
-    newAllowance: Math.min(unseen, Math.max(0, DAILY_NEW_LIMIT - newToday))
+    newAllowance: Math.min(unseen, Math.max(0, state.dailyNewLimit - newToday))
   };
 }
 
@@ -150,14 +167,15 @@ function renderDeckDetails() {
   elements.newCount.textContent = String(counts.unseen);
   elements.learnedCount.textContent = String(counts.learned);
   elements.totalCount.textContent = String(deck.questions.length);
+  elements.dailyNewLimitSelect.value = String(state.dailyNewLimit);
 
   const sessionCount = counts.due + counts.newAllowance;
   if (sessionCount) {
-    elements.studyPlan.textContent = `今回は復習期限の${counts.due}問と、新しい${counts.newAllowance}問を学習します。新しい問題は1日${DAILY_NEW_LIMIT}問までです。`;
+    elements.studyPlan.textContent = `今回は復習期限の${counts.due}問と、新しい${counts.newAllowance}問を学習します。新しい問題は1日${state.dailyNewLimit}問までです。`;
     elements.startStudyButton.textContent = `学習を始める（${sessionCount}問）`;
     elements.startStudyButton.disabled = false;
   } else if (counts.unseen) {
-    elements.studyPlan.textContent = `今日の新しい問題${DAILY_NEW_LIMIT}問は完了しました。期限になった復習問題がここに表示されます。`;
+    elements.studyPlan.textContent = `今日の新しい問題${state.dailyNewLimit}問は完了しました。期限になった復習問題がここに表示されます。`;
     elements.startStudyButton.textContent = '今日の学習は完了';
     elements.startStudyButton.disabled = true;
   } else {
@@ -174,6 +192,7 @@ async function selectDeck(deckId) {
     const [deck, progress] = await Promise.all([getDeck(deckId), getDeckProgress(deckId)]);
     state.currentDeck = deck;
     state.progress = progress;
+    state.dailyNewLimit = loadDailyNewLimit(deck.id);
     renderDeckDetails();
     elements.deckDetails.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (error) {
@@ -392,6 +411,12 @@ elements.confirmImportButton.addEventListener('click', async () => {
   }
 });
 
+elements.dailyNewLimitSelect.addEventListener('change', () => {
+  if (!state.currentDeck) return;
+  state.dailyNewLimit = saveDailyNewLimit(state.currentDeck.id, elements.dailyNewLimitSelect.value);
+  renderDeckDetails();
+  setStatus(`1日の新規問題数を${state.dailyNewLimit}問に変更しました。`, 'success');
+});
 elements.startStudyButton.addEventListener('click', showStudyView);
 elements.choiceButtons.addEventListener('click', event => {
   const button = event.target.closest('[data-choice]');
@@ -410,8 +435,10 @@ elements.deleteDeckButton.addEventListener('click', async () => {
   if (!window.confirm(`「${title}」の登録問題と学習履歴をこの端末から削除しますか？`)) return;
   try {
     await deleteDeck(id);
+    deleteDailyNewLimit(id);
     state.currentDeck = null;
     state.progress = new Map();
+    state.dailyNewLimit = DEFAULT_DAILY_NEW_LIMIT;
     elements.deckDetails.hidden = true;
     await refreshDecks();
     setStatus(`${title}をこの端末から削除しました。`, 'success');
@@ -420,4 +447,5 @@ elements.deleteDeckButton.addEventListener('click', async () => {
   }
 });
 
+prepareDailyNewLimitSelect();
 refreshDecks().catch(error => setStatus(`保存領域を準備できませんでした：${error.message}`, 'error'));
