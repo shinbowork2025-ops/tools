@@ -21,8 +21,15 @@
     <button type="button" class="reset-all" id="resetAll" hidden>すべて解除</button>
   </div>
   <h1>チェーンソー替刃・ガイドバー検索</h1>
-  <div class="sub">メーカーと本体型式から、仕様・OREGON品番・コメリ商品情報・JANコード・バーコードを検索（491仕様／270型式表記／2026年6月25日確認）</div>
+  <div class="sub">本体型式から替え刃を、OREGONの替え刃品番から適合する本体とバー仕様を検索できます。</div>
 </header>
+
+<section class="step" aria-labelledby="chainLabel">
+  <label class="step-label" id="chainLabel" for="chainSearch">替え刃品番から本体を探す</label>
+  <input type="text" id="chainSearch" list="chainCodes" placeholder="例：90PX-45E" autocomplete="off" spellcheck="false">
+  <datalist id="chainCodes"></datalist>
+  <div id="chainMatches" aria-live="polite"></div>
+</section>
 
 <section class="step" aria-labelledby="makerLabel">
   <div class="step-label" id="makerLabel"><span class="step-num">1</span>本体メーカーを選ぶ<span class="count" id="makerCount"></span><button type="button" class="clear" id="makerClear" hidden>× 解除</button></div>
