@@ -177,4 +177,52 @@ makerSearch.addEventListener('input',renderMakerChips); modelSearch.addEventList
 powerFilter.addEventListener('change',()=>{selectedModel=null;selectedSpec=null;specStep.hidden=true;modelClear.hidden=true;specClear.hidden=true;renderModelChips();renderResult();});
 availabilityFilter.addEventListener('change',()=>{selectedModel=null;selectedSpec=null;specStep.hidden=true;modelClear.hidden=true;specClear.hidden=true;renderModelChips();renderResult();});
 makerClear.addEventListener('click',clearMaker); modelClear.addEventListener('click',clearModel); specClear.addEventListener('click',clearSpec); resetAll.addEventListener('click',clearMaker);
+// 店頭表記（90PX-45E、90PX45EC）と適合表の表記（90PX045E）を照合する。
+function chainKey(code) {
+  return normText(code).replace(/[-‐‑－]/g, '').replace(/([a-z])0*(\d+)ec?$/, '$1$2e');
+}
+
+const chainSearch = document.getElementById('chainSearch');
+const chainMatches = document.getElementById('chainMatches');
+const chainCodes = document.getElementById('chainCodes');
+const rowsByChain = new Map();
+for (const row of DATA) {
+  for (const part of splitPartCodes(row[IDX.chainExpanded] || row[IDX.chain])) {
+    const key = chainKey(part);
+    if (!rowsByChain.has(key)) {
+      rowsByChain.set(key, new Set());
+      const option = document.createElement('option');
+      option.value = part;
+      chainCodes.appendChild(option);
+    }
+    rowsByChain.get(key).add(row);
+  }
+}
+
+function renderChainMatches() {
+  chainMatches.replaceChildren();
+  const key = chainKey(chainSearch.value);
+  if (!key) return;
+  const rows = rowsByChain.get(key);
+  if (!rows) {
+    chainMatches.textContent = '該当する品番がありません。末尾まで入力するか候補を選んでください。';
+    return;
+  }
+  const list = document.createElement('ul');
+  for (const row of rows) {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = row[IDX.url] + (row[IDX.page] ? '#page=' + row[IDX.page] : '');
+    link.textContent = '出典';
+    const spec = specLabel(row);
+    item.append(row[IDX.maker] + ' ' + displayModel(row[IDX.model]) + '｜' + spec.main + '｜' + spec.sub + ' ', link);
+    list.appendChild(item);
+  }
+  chainMatches.append('適合する仕様 ' + rows.size + ' 件', list);
+}
+chainSearch.addEventListener('input', renderChainMatches);
+resetAll.addEventListener('click', () => {
+  chainSearch.value = '';
+  renderChainMatches();
+});
 renderMakerChips(); renderResult();
